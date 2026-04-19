@@ -2,7 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
-const { votes, auditLog } = require('../models/db');
+const { votes, auditLog, syncVote, syncAuditEntry, deleteVoteFromDB } = require('../models/db');
 const { authenticate, authorize } = require('../middleware/auth');
 const { createVoteOnChain, castVoteOnChain, closeVoteOnChain } = require('../utils/blockchain');
 
@@ -63,6 +63,7 @@ router.post('/',
     };
 
     votes.push(newVote);
+    syncVote(newVote); // Persistir en MongoDB
 
     // ── Registrar en blockchain real si está habilitado ───────────────────────
     if (blockchainEnabled) {
@@ -81,6 +82,7 @@ router.post('/',
       if (chainResult.success) {
         newVote.chainVoteId   = chainResult.chainVoteId;
         newVote.deployTxHash  = chainResult.transactionHash;
+        syncVote(newVote); // Actualizar en MongoDB con chainVoteId
         console.log(`⛓️  Votación creada en blockchain. Chain ID: ${chainResult.chainVoteId} | Tx: ${chainResult.transactionHash}`);
       } else {
         console.warn('⚠️  Blockchain no disponible, votación guardada solo en memoria:', chainResult.error);
@@ -137,6 +139,8 @@ router.post('/:id/cast',
       }
     }
 
+    syncVote(vote); // Persistir voto actualizado en MongoDB
+
     // ── Agregar a audit log local ─────────────────────────────────────────────
     const crypto = require('crypto');
     const prevHash = auditLog.length > 0
@@ -161,6 +165,7 @@ router.post('/:id/cast',
     };
     entry.blockHash = crypto.createHash('sha256').update(JSON.stringify(entry)).digest('hex');
     auditLog.push(entry);
+    syncAuditEntry(entry); // Persistir en MongoDB
 
     res.json({
       message:         '¡Voto registrado exitosamente!',
@@ -184,6 +189,7 @@ router.patch('/:id/status', authenticate, authorize('admin'), async (req, res) =
   }
 
   vote.status = req.body.status;
+  syncVote(vote); // Persistir en MongoDB
 
   // Cerrar también en blockchain
   if (req.body.status === 'closed' && vote.blockchainEnabled && vote.chainVoteId) {
@@ -201,8 +207,11 @@ router.delete('/:id', authenticate, authorize('admin'), (req, res) => {
   const idx = votes.findIndex(v => v.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Votación no encontrada' });
 
+  const deletedId = votes[idx].id;
   votes.splice(idx, 1);
+  deleteVoteFromDB(deletedId); // Eliminar de MongoDB
   res.json({ message: 'Votación eliminada' });
 });
 
 module.exports = router;
+
