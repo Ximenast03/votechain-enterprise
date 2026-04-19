@@ -608,8 +608,8 @@
 // ══════════════════════════════════════════════════════════
 const IS_XAMPP = window.location.pathname.includes('/votechain/');
 const API = IS_XAMPP
-  ? '/votechain/api/proxy.php?path='     // a través del proxy PHP de XAMPP
-  : 'http://localhost:3001/api/';        // directo a Node.js
+  ? '/votechain/api/proxy.php?path='
+  : 'https://votechain-enterprise.onrender.com/api/';
 
 function apiUrl(path, query = '') {
   if (IS_XAMPP) return `${API}${path}${query ? '&' + query : ''}`;
