@@ -326,6 +326,10 @@
       <p>Sistema de votación corporativa con blockchain</p>
     </div>
     <div class="login-error" id="loginError"></div>
+    <div id="loginWakeup" style="display:none;background:rgba(47,128,237,.08);border:1px solid rgba(47,128,237,.25);color:#60a5fa;padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:12px;text-align:center;line-height:1.5">
+      ⏳ El servidor está iniciando...<br>
+      <span style="opacity:.7">El plan gratuito puede tardar hasta 60 segundos la primera vez</span>
+    </div>
     <div class="fg">
       <label>Email corporativo</label>
       <input type="email" id="loginEmail" placeholder="admin@votechain.com" value="admin@votechain.com" autocomplete="username" />
@@ -422,7 +426,7 @@
           <div class="fg"><label>Título *</label><input type="text" id="cvTitle" placeholder="Ej: Modelo de trabajo 2025" /></div>
           <div class="fg"><label>Descripción</label><textarea id="cvDesc" placeholder="Describe el propósito..."></textarea></div>
           <div class="form-row">
-            <div class="fg"><label>Fecha y hora de cierre *</label><input type="datetime-local" id="cvEnd" /></div>
+            <div class="fg"><label>Fecha y hora de cierre *</label><input type="datetime-local" id="cvEnd" onclick="try{this.showPicker()}catch(e){}" onfocus="try{this.showPicker()}catch(e){}" style="cursor:pointer" /></div>
             <div class="fg">
               <label>Opciones</label>
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px">
@@ -615,12 +619,13 @@
 
 <script>
 // ══════════════════════════════════════════════════════════
-// CONFIG — detecta XAMPP vs directo
+// CONFIG — detección automática de entorno
 // ══════════════════════════════════════════════════════════
+const RENDER_BACKEND = 'https://votechain-enterprise.onrender.com/api/';
 const IS_XAMPP = window.location.pathname.includes('/votechain/');
-const API = IS_XAMPP
-  ? '/votechain/api/proxy.php?path='
-  : 'https://votechain-enterprise.onrender.com/api/';
+
+// Siempre usar Render excepto en XAMPP
+const API = IS_XAMPP ? '/votechain/api/proxy.php?path=' : RENDER_BACKEND;
 
 function apiUrl(path, query = '') {
   if (IS_XAMPP) return `${API}${path}${query ? '&' + query : ''}`;
@@ -705,10 +710,23 @@ async function checkBlockchainStatus() {
 // AUTH
 // ══════════════════════════════════════════════════════════
 async function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass  = document.getElementById('loginPass').value;
-  const errEl = document.getElementById('loginError');
+  const email  = document.getElementById('loginEmail').value.trim();
+  const pass   = document.getElementById('loginPass').value;
+  const errEl  = document.getElementById('loginError');
+  const btn    = document.querySelector('.btn-login');
+  const wakeEl = document.getElementById('loginWakeup');
   errEl.style.display = 'none';
+  if (wakeEl) wakeEl.style.display = 'none';
+
+  // Wake-up ping al backend (Render free tier se duerme)
+  btn.textContent = '⏳ Conectando...';
+  btn.disabled = true;
+  const wakeTimer = setTimeout(() => { if (wakeEl) wakeEl.style.display = 'block'; }, 3000);
+  try { await fetch(apiUrl('health'), { signal: AbortSignal.timeout(10000) }).catch(() => {}); } catch {}
+  clearTimeout(wakeTimer);
+  if (wakeEl) wakeEl.style.display = 'none';
+  btn.textContent = '⏳ Iniciando sesión...';
+
   try {
     const res  = await fetch(apiUrl('auth/login'), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -727,8 +745,11 @@ async function doLogin() {
   } catch {
     errEl.textContent = IS_XAMPP
       ? 'No se puede conectar. Verifica que Node.js esté corriendo (npm start)'
-      : 'No se puede conectar al servidor en localhost:3001';
+      : '⚠️ El servidor está iniciando. Espera 30-60 segundos y vuelve a intentarlo.';
     errEl.style.display = 'block';
+  } finally {
+    btn.textContent = 'Entrar al sistema';
+    btn.disabled = false;
   }
 }
 
