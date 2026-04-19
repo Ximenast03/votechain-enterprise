@@ -3,7 +3,7 @@ const router  = express.Router();
 const bcrypt  = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
-const { users } = require('../models/db');
+const { users, syncUser } = require('../models/db');
 const { authenticate, authenticateRefresh, authorize, can, generateTokens, PERMISSIONS } = require('../middleware/auth');
 
 // Almacén en memoria de refresh tokens (en producción: Redis o DB)
@@ -49,6 +49,7 @@ router.post('/login',
 
     // Actualizar último login
     user.lastLogin = new Date().toISOString();
+    syncUser(user); // Persistir en MongoDB
     logActivity(user.id, 'LOGIN_SUCCESS', { ip: req.ip });
 
     res.json({
@@ -141,6 +142,7 @@ router.post('/register',
     };
 
     users.push(newUser);
+    syncUser(newUser); // Persistir en MongoDB
     logActivity(newUser.id, 'USER_REGISTERED', { email, department });
 
     res.status(201).json({
@@ -191,6 +193,7 @@ router.patch('/users/:id/role',
 
     const oldRole = user.role;
     user.role = req.body.role;
+    syncUser(user); // Persistir en MongoDB
     logActivity(req.user.id, 'ROLE_CHANGED', { targetUser: user.id, oldRole, newRole: req.body.role });
 
     res.json({
@@ -252,6 +255,7 @@ router.patch('/me/password',
     }
 
     user.password = bcrypt.hashSync(req.body.newPassword, 12);
+    syncUser(user); // Persistir en MongoDB
     logActivity(user.id, 'PASSWORD_CHANGED', { ip: req.ip });
 
     res.json({ message: 'Contraseña actualizada exitosamente' });
@@ -259,3 +263,4 @@ router.patch('/me/password',
 );
 
 module.exports = router;
+
