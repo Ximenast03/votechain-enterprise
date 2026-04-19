@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoteChain Enterprise</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #060b18;
+      --panel:   #0c1428;
+      --panel2:  #101d38;
+      --border:  #1a3050;
+      --border2: #243d60;
+      --text:    #dbe7f5;
+      --muted:   #4a6080;
+      --accent:  #2f80ed;
+      --accent2: #7c3aed;
+      --green:   #10b981;
+      --yellow:  #f59e0b;
+      --red:     #ef4444;
+      --chain:   #06b6d4;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Space Grotesk',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* ─── SCROLLBAR ─────────────────────────────────────────── */
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:var(--panel); }
+    ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+
+    /* ─── LOGIN ─────────────────────────────────────────────── */
+    #loginScreen {
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background: radial-gradient(ellipse 80% 60% at 50% 20%, #0f2a5a 0%, #060b18 70%);
+    }
+    .login-box {
+      background:var(--panel); border:1px solid var(--border);
+      border-radius:20px; padding:48px 44px; width:420px; max-width:95vw;
+      box-shadow: 0 0 80px rgba(47,128,237,.08);
+    }
+    .login-brand { text-align:center; margin-bottom:36px; }
+    .login-brand .brand-icon {
+      width:64px; height:64px; border-radius:16px; margin:0 auto 16px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex; align-items:center; justify-content:center; font-size:28px;
+    }
+    .login-brand h1 { font-size:22px; font-weight:700; color:#fff; letter-spacing:-.3px; }
+    .login-brand p  { font-size:13px; color:var(--muted); margin-top:4px; }
+    .fg { margin-bottom:18px; }
+    .fg label { display:block; font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.8px; font-weight:600; }
+    .fg input, .fg select, .fg textarea {
+      width:100%; background:#080e1e; border:1px solid var(--border);
+      border-radius:10px; padding:12px 14px; color:var(--text);
+      font-size:14px; outline:none; transition:border .2s; font-family:inherit;
+    }
+    .fg input:focus, .fg select:focus, .fg textarea:focus { border-color:var(--accent); }
+    .fg textarea { resize:vertical; min-height:80px; }
+    .btn-login {
+      width:100%; padding:14px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700;
+      cursor:pointer; margin-top:4px; transition:opacity .2s; font-family:inherit;
+    }
+    .btn-login:hover { opacity:.85; }
+    .login-hint { text-align:center; margin-top:20px; font-size:11px; color:var(--muted); line-height:1.8; }
+    .login-error {
+      background:#1c0808; border:1px solid #5a1a1a; color:#f87171;
+      padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:16px; display:none;
+    }
+
+    /* ─── HEADER ─────────────────────────────────────────────── */
+    #appShell { display:none; }
+    header {
+      background:var(--panel); border-bottom:1px solid var(--border);
+      padding:14px 28px; display:flex; align-items:center;
+      justify-content:space-between; position:sticky; top:0; z-index:50;
+    }
+    .logo { display:flex; align-items:center; gap:10px; }
+    .logo-icon {
+      width:34px; height:34px; border-radius:8px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex; align-items:center; justify-content:center; font-size:16px;
+    }
+    .logo h1 { font-size:17px; font-weight:700; color:#fff; letter-spacing:-.2px; }
+    .chain-status {
+      display:flex; align-items:center; gap:6px; background:var(--panel2);
+      border:1px solid var(--border); border-radius:20px; padding:5px 12px; font-size:12px;
+    }
+    .chain-dot { width:7px; height:7px; border-radius:50%; }
+    .chain-dot.ok  { background:var(--green); box-shadow:0 0 6px var(--green); }
+    .chain-dot.err { background:var(--red); }
+    .chain-dot.pending { background:var(--yellow); animation:pulse 1.2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .header-right { display:flex; align-items:center; gap:10px; }
+    .user-pill {
+      display:flex; align-items:center; gap:8px; background:var(--panel2);
+      border:1px solid var(--border); padding:6px 14px; border-radius:20px; font-size:13px;
+    }
+    .user-dot { width:7px; height:7px; background:var(--green); border-radius:50%; }
+    .btn-logout {
+      background:transparent; border:1px solid var(--border); color:var(--muted);
+      padding:6px 14px; border-radius:8px; font-size:12px; cursor:pointer; font-family:inherit;
+    }
+    .btn-logout:hover { background:var(--panel2); color:var(--text); }
+
+    /* ─── LAYOUT ─────────────────────────────────────────────── */
+    .layout { display:flex; min-height:calc(100vh - 63px); }
+    aside {
+      width:210px; flex-shrink:0; background:var(--panel);
+      border-right:1px solid var(--border); padding:20px 0;
+    }
+    .nav-section { padding:0 12px; margin-bottom:20px; }
+    .nav-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; padding:0 8px; }
+    .nav-item {
+      display:flex; align-items:center; gap:10px; padding:9px 12px;
+      border-radius:8px; cursor:pointer; font-size:13px; color:var(--muted);
+      transition:all .15s; margin-bottom:2px;
+    }
+    .nav-item:hover  { background:var(--panel2); color:var(--text); }
+    .nav-item.active { background:linear-gradient(135deg,rgba(47,128,237,.15),rgba(124,58,237,.1)); color:#6fb3ff; font-weight:600; border:1px solid rgba(47,128,237,.2); }
+
+    /* ─── PAGES ──────────────────────────────────────────────── */
+    main { flex:1; padding:28px 32px; overflow-y:auto; }
+    .page { display:none; }
+    .page.active { display:block; }
+    .page-title { font-size:22px; font-weight:700; color:#fff; margin-bottom:4px; letter-spacing:-.3px; }
+    .page-sub   { font-size:13px; color:var(--muted); margin-bottom:28px; }
+
+    /* ─── BUTTONS ────────────────────────────────────────────── */
+    .btn {
+      padding:9px 18px; border-radius:8px; border:none;
+      font-size:13px; font-weight:600; cursor:pointer;
+      transition:all .15s; font-family:inherit;
+    }
+    .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
+    .btn-primary:hover { opacity:.85; }
+    .btn-success { background:linear-gradient(135deg,var(--green),#059669); color:#fff; }
+    .btn-success:hover { opacity:.85; }
+    .btn-danger  { background:linear-gradient(135deg,var(--red),#dc2626); color:#fff; }
+    .btn-danger:hover  { opacity:.85; }
+    .btn-ghost   { background:transparent; border:1px solid var(--border); color:var(--muted); }
+    .btn-ghost:hover   { background:var(--panel2); color:var(--text); }
+    .btn-chain   { background:linear-gradient(135deg,#0e7490,#0891b2); color:#fff; }
+    .btn-chain:hover { opacity:.85; }
+    .btn-export  { background:linear-gradient(135deg,var(--yellow),#d97706); color:#fff; }
+    .btn-sm { padding:5px 12px; font-size:12px; }
+
+    /* ─── KPI GRID ───────────────────────────────────────────── */
+    .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
+    .kpi {
+      background:var(--panel); border:1px solid var(--border);
+      border-radius:14px; padding:20px; position:relative; overflow:hidden;
+    }
+    .kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+    .kpi.blue::before   { background:linear-gradient(90deg,var(--accent),#60a5fa); }
+    .kpi.green::before  { background:linear-gradient(90deg,var(--green),#34d399); }
+    .kpi.purple::before { background:linear-gradient(90deg,var(--accent2),#a78bfa); }
+    .kpi.cyan::before   { background:linear-gradient(90deg,var(--chain),#22d3ee); }
+    .kpi.orange::before { background:linear-gradient(90deg,var(--yellow),#fbbf24); }
+    .kpi-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:600; }
+    .kpi-val   { font-size:30px; font-weight:700; color:#fff; letter-spacing:-.5px; }
+    .kpi-icon  { position:absolute; right:14px; top:14px; font-size:20px; opacity:.15; }
+    .kpi-sub   { font-size:11px; color:var(--muted); margin-top:4px; }
+
+    /* ─── CARDS ──────────────────────────────────────────────── */
+    .card {
+      background:var(--panel); border:1px solid var(--border);
+      border-radius:14px; padding:22px; margin-bottom:20px;
+    }
+    .card-title { font-size:13px; font-weight:600; color:var(--muted); margin-bottom:16px; text-transform:uppercase; letter-spacing:.5px; }
+
+    /* ─── TOOLBAR ────────────────────────────────────────────── */
+    .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+    .search-wrap { position:relative; flex:1; min-width:180px; max-width:300px; }
+    .search-wrap input {
+      width:100%; background:var(--panel); border:1px solid var(--border);
+      border-radius:8px; padding:9px 12px 9px 34px; color:var(--text);
+      font-size:13px; outline:none; font-family:inherit;
+    }
+    .search-wrap input:focus { border-color:var(--accent); }
+    .search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:14px; }
+    .sel {
+      background:var(--panel); border:1px solid var(--border);
+      border-radius:8px; padding:9px 12px; color:var(--muted);
+      font-size:13px; outline:none; cursor:pointer; font-family:inherit;
+    }
+
+    /* ─── TABLE ──────────────────────────────────────────────── */
+    .table-wrap { background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:20px; }
+    table { width:100%; border-collapse:collapse; }
+    thead { background:var(--panel2); }
+    th { text-align:left; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; padding:12px 16px; border-bottom:1px solid var(--border); font-weight:600; }
+    td { padding:12px 16px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:rgba(47,128,237,.04); }
+
+    /* ─── BADGES ─────────────────────────────────────────────── */
+    .badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+    .badge-admin    { background:#1e1b2e; color:#a78bfa; border:1px solid #4c1d95; }
+    .badge-employee { background:#0c1829; color:#60a5fa; border:1px solid #1e3a5f; }
+    .badge-active   { background:#052e16; color:#4ade80; border:1px solid #166534; }
+    .badge-paused   { background:#1c1a0a; color:#fbbf24; border:1px solid #92400e; }
+    .badge-closed   { background:#1e1b2e; color:#a78bfa; border:1px solid #4c1d95; }
+    .badge-chain    { background:#0a2030; color:#22d3ee; border:1px solid #0e4a5c; font-family:'JetBrains Mono',monospace; }
+
+    /* ─── VOTE CARDS ─────────────────────────────────────────── */
+    .vote-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+    .vote-card {
+      background:var(--panel); border:1px solid var(--border);
+      border-radius:14px; padding:20px; transition:border-color .2s;
+    }
+    .vote-card:hover { border-color:var(--border2); }
+    .vote-card-title { font-size:15px; font-weight:700; color:#fff; margin-bottom:6px; letter-spacing:-.2px; }
+    .vote-card-desc  { font-size:12px; color:var(--muted); margin-bottom:14px; line-height:1.5; }
+    .vote-bar        { background:var(--panel2); border-radius:4px; height:3px; margin-bottom:10px; overflow:hidden; }
+    .vote-bar-fill   { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:4px; transition:width .5s; }
+    .chain-badge-row { display:flex; align-items:center; gap:6px; margin-bottom:10px; }
+
+    /* ─── MODAL ──────────────────────────────────────────────── */
+    .modal-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,.75); z-index:100;
+      align-items:center; justify-content:center;
+    }
+    .modal-overlay.open { display:flex; }
+    .modal {
+      background:var(--panel); border:1px solid var(--border);
+      border-radius:18px; padding:32px; width:520px;
+      max-width:95vw; max-height:90vh; overflow-y:auto;
+    }
+    .modal h2 { font-size:18px; font-weight:700; margin-bottom:22px; color:#fff; letter-spacing:-.2px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:24px; }
+    .option-item { display:flex; gap:8px; margin-bottom:8px; }
+    .option-item input { flex:1; }
+    .btn-remove { background:#1c0808; border:1px solid #5a1a1a; color:#f87171; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:13px; }
+
+    /* ─── CHARTS ─────────────────────────────────────────────── */
+    .charts-grid { display:grid; grid-template-columns:3fr 2fr; gap:16px; margin-bottom:20px; }
+    .chart-wrap  { position:relative; height:260px; }
+
+    /* ─── BLOCKCHAIN PANEL ───────────────────────────────────── */
+    .chain-panel {
+      background:linear-gradient(135deg,#030d1f,#061a30);
+      border:1px solid #0e3355; border-radius:14px; padding:20px; margin-bottom:16px;
+    }
+    .chain-panel-title { font-size:12px; font-weight:600; color:var(--chain); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+    .tx-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #0e2840; font-size:12px; }
+    .tx-row:last-child { border-bottom:none; }
+    .tx-num  { background:#0e2840; color:var(--chain); border-radius:6px; padding:3px 10px; font-family:'JetBrains Mono',monospace; font-weight:600; min-width:72px; text-align:center; }
+    .tx-hash { color:var(--muted); font-family:'JetBrains Mono',monospace; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .tx-on   { color:var(--green); font-weight:600; white-space:nowrap; }
+    .tx-off  { color:var(--yellow); font-weight:600; white-space:nowrap; }
+    .tx-time { color:var(--muted); white-space:nowrap; font-size:11px; }
+
+    /* ─── RESULTS BARS ───────────────────────────────────────── */
+    .result-bar { margin-bottom:14px; }
+    .result-bar-header { display:flex; justify-content:space-between; margin-bottom:5px; font-size:13px; }
+    .result-bar-pct { font-weight:700; color:var(--accent); }
+    .result-bar-bg  { background:var(--panel2); border-radius:4px; height:10px; overflow:hidden; }
+    .result-bar-fill { height:100%; border-radius:4px; transition:width .6s cubic-bezier(.4,0,.2,1); }
+
+    /* ─── TOAST ──────────────────────────────────────────────── */
+    .toast {
+      position:fixed; bottom:24px; right:24px; padding:12px 20px;
+      border-radius:10px; font-size:13px; font-weight:600;
+      transform:translateY(60px); opacity:0; transition:all .3s; z-index:200;
+    }
+    .toast.show { transform:translateY(0); opacity:1; }
+    .toast-ok  { background:var(--green); color:#fff; }
+    .toast-err { background:var(--red); color:#fff; }
+    .toast-info { background:var(--accent); color:#fff; }
+
+    /* ─── EMPTY / AVATAR ─────────────────────────────────────── */
+    .empty { text-align:center; padding:48px; color:var(--muted); }
+    .empty .icon { font-size:36px; margin-bottom:10px; opacity:.5; }
+    .avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+    .user-cell { display:flex; align-items:center; gap:10px; }
+    .user-name  { font-weight:600; color:var(--text); font-size:13px; }
+    .user-email { font-size:11px; color:var(--muted); }
+
+    /* ─── VERIFY STRIP ───────────────────────────────────────── */
+    .verify-strip {
+      background:linear-gradient(90deg,rgba(16,185,129,.08),rgba(6,182,212,.08));
+      border:1px solid rgba(16,185,129,.2); border-radius:10px;
+      padding:12px 16px; font-size:12px; color:var(--green); margin-top:14px;
+    }
+    .verify-strip a { color:var(--chain); text-decoration:none; font-family:'JetBrains Mono',monospace; }
+
+    @media(max-width:960px) {
+      .kpi-grid { grid-template-columns:repeat(2,1fr); }
+      .charts-grid { grid-template-columns:1fr; }
+      aside { display:none; }
+      main { padding:18px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════ LOGIN ════════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="brand-icon">⛓️</div>
+      <h1>VoteChain Enterprise</h1>
+      <p>Sistema de votación corporativa con blockchain</p>
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <div class="fg">
+      <label>Email corporativo</label>
+      <input type="email" id="loginEmail" placeholder="admin@votechain.com" value="admin@votechain.com" autocomplete="username" />
+    </div>
+    <div class="fg">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" value="Admin123!" autocomplete="current-password" />
+    </div>
+    <button class="btn-login" onclick="doLogin()">Entrar al sistema</button>
+    <div class="login-hint">
+      Admin: admin@votechain.com / Admin123!<br>
+      Empleado: maria@votechain.com / Employee123!
+    </div>
+  </div>
+</div>
+
+<!-- ════ APP ══════════════════════════════════════════════ -->
+<div id="appShell">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⛓️</div>
+      <h1>VoteChain Enterprise</h1>
+    </div>
+    <div class="chain-status" id="chainStatus">
+      <div class="chain-dot pending" id="chainDot"></div>
+      <span id="chainLabel">Conectando blockchain...</span>
+    </div>
+    <div class="header-right">
+      <div class="user-pill"><div class="user-dot"></div><span id="headerUser">—</span><span id="roleBadge" style="font-size:10px;font-weight:700;margin-left:4px"></span></div>
+      <button class="btn-logout" onclick="doLogout()">Salir</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <div class="nav-section">
+        <div class="nav-label">Principal</div>
+        <div class="nav-item active" onclick="navigate('dashboard')" id="nav-dashboard">📊 Dashboard</div>
+        <div class="nav-item" onclick="navigate('voting')"    id="nav-voting">🗳️ Votaciones</div>
+        <div class="nav-item admin-only" onclick="navigate('create')" id="nav-create">➕ Crear Votación</div>
+        <div class="nav-item" onclick="navigate('stats')"     id="nav-stats">📈 Estadísticas</div>
+      </div>
+      <div class="nav-section admin-only">
+        <div class="nav-label">Administración</div>
+        <div class="nav-item" onclick="navigate('users')"  id="nav-users">👥 Usuarios</div>
+        <div class="nav-item" onclick="navigate('audit')"  id="nav-audit">⛓️ Auditoría</div>
+        <div class="nav-item" onclick="navigate('activity')" id="nav-activity">📋 Actividad</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Mi Cuenta</div>
+        <div class="nav-item" onclick="navigate('profile')" id="nav-profile">👤 Mi Perfil</div>
+      </div>
+    </aside>
+
+    <main>
+
+      <!-- DASHBOARD ─────────────────────────────────────── -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Estado general del sistema en tiempo real</div>
+        <div class="kpi-grid">
+          <div class="kpi blue">  <div class="kpi-icon">🗳️</div><div class="kpi-label">Votaciones</div><div class="kpi-val" id="d-total">—</div></div>
+          <div class="kpi green"> <div class="kpi-icon">✅</div><div class="kpi-label">Activas</div><div class="kpi-val" id="d-active">—</div></div>
+          <div class="kpi purple"><div class="kpi-icon">👥</div><div class="kpi-label">Total Votos</div><div class="kpi-val" id="d-votes">—</div></div>
+          <div class="kpi cyan">  <div class="kpi-icon">⛓️</div><div class="kpi-label">En Blockchain</div><div class="kpi-val" id="d-chain">—</div><div class="kpi-sub" id="d-chain-sub"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Votaciones recientes</div>
+          <div id="dashVoteList"><div class="empty"><div class="icon">⟳</div><p>Cargando...</p></div></div>
+        </div>
+      </div>
+
+      <!-- VOTACIONES ─────────────────────────────────────── -->
+      <div class="page" id="page-voting">
+        <div class="page-title">Votaciones</div>
+        <div class="page-sub">Participa en las votaciones activas de tu organización</div>
+        <div class="toolbar">
+          <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="voteSearch" placeholder="Buscar..." oninput="renderVotes()" /></div>
+          <select class="sel" id="voteStatusFilter" onchange="renderVotes()">
+            <option value="">Todos los estados</option>
+            <option value="active">Activas</option>
+            <option value="closed">Cerradas</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="loadVotes()">↺ Actualizar</button>
+        </div>
+        <div class="vote-cards" id="voteCards"><div class="empty"><div class="icon">⟳</div><p>Cargando votaciones...</p></div></div>
+      </div>
+
+      <!-- CREAR VOTACIÓN ─────────────────────────────────── -->
+      <div class="page" id="page-create">
+        <div class="page-title">Crear Votación</div>
+        <div class="page-sub">La votación se registrará automáticamente en el smart contract</div>
+        <div class="card">
+          <div class="fg"><label>Título *</label><input type="text" id="cvTitle" placeholder="Ej: Modelo de trabajo 2025" /></div>
+          <div class="fg"><label>Descripción</label><textarea id="cvDesc" placeholder="Describe el propósito..."></textarea></div>
+          <div class="form-row">
+            <div class="fg"><label>Fecha y hora de cierre *</label><input type="datetime-local" id="cvEnd" /></div>
+            <div class="fg">
+              <label>Opciones</label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px">
+                <input type="checkbox" id="cvAnon" checked style="width:auto"> Votación anónima
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px">
+                <input type="checkbox" id="cvChain" checked style="width:auto"> Registrar en blockchain
+              </label>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Opciones de votación * (mínimo 2)</label>
+            <div id="optionsContainer">
+              <div class="option-item"><input type="text" placeholder="Opción 1" /><button class="btn-remove" onclick="removeOption(this)">✕</button></div>
+              <div class="option-item"><input type="text" placeholder="Opción 2" /><button class="btn-remove" onclick="removeOption(this)">✕</button></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addOption()">+ Agregar opción</button>
+          </div>
+          <div id="createChainPreview" style="background:#030d1f;border:1px solid #0e3355;border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:#22d3ee">
+            ⛓️ Esta votación será enviada al smart contract en <code style="color:#60a5fa">localhost:8545</code> · Contrato: <code style="color:#60a5fa" id="contractAddrPrev">—</code>
+          </div>
+          <div style="display:flex;gap:12px;justify-content:flex-end">
+            <button class="btn btn-ghost" onclick="navigate('voting')">Cancelar</button>
+            <button class="btn btn-primary" onclick="createVote()">⛓️ Crear en Blockchain</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESTADÍSTICAS ────────────────────────────────────── -->
+      <div class="page" id="page-stats">
+        <div class="page-title">Estadísticas</div>
+        <div class="page-sub">Datos en tiempo real desde el backend y el smart contract</div>
+
+        <!-- Selector de votación para detalle -->
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label style="font-size:13px;color:var(--muted);font-weight:600">Votación:</label>
+            <select class="sel" id="statsVoteSelect" onchange="loadVoteDetail()" style="flex:1;max-width:400px">
+              <option value="">— Selecciona una votación —</option>
+            </select>
+            <button class="btn btn-chain btn-sm" onclick="loadVoteDetailFromChain()">⛓️ Leer desde blockchain</button>
+          </div>
+        </div>
+
+        <!-- Detalle de votación seleccionada -->
+        <div id="statsVoteDetail"></div>
+
+        <!-- Global charts -->
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-title">Votos por votación</div>
+            <div class="chart-wrap"><canvas id="statsBarChart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Estados del sistema</div>
+            <div class="chart-wrap"><canvas id="statsDoughnut"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Tabla resumen</div>
+          <div id="statsTable"></div>
+        </div>
+      </div>
+
+      <!-- USUARIOS ────────────────────────────────────────── -->
+      <div class="page" id="page-users">
+        <div class="page-title">Gestión de Usuarios</div>
+        <div class="page-sub">Usuarios registrados en el sistema</div>
+        <div class="toolbar">
+          <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="userSearch" placeholder="Buscar..." oninput="renderUsers()" /></div>
+          <select class="sel" id="userRoleFilter" onchange="renderUsers()">
+            <option value="">Todos los roles</option>
+            <option value="admin">Admin</option>
+            <option value="employee">Empleado</option>
+          </select>
+          <button class="btn btn-export btn-sm" onclick="exportCSV()">⬇ CSV</button>
+          <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Nuevo Usuario</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Usuario</th><th>Departamento</th><th>Rol</th><th>Registro</th><th id="usersActionsHeader"></th></tr></thead>
+            <tbody id="usersTable"><tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)">⟳ Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PERFIL / CAMBIAR CONTRASEÑA ──────────────────────── -->
+      <div class="page" id="page-profile">
+        <div class="page-title">Mi Perfil</div>
+        <div class="page-sub">Gestiona tu cuenta y seguridad</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div class="card">
+            <div class="card-title">Información de cuenta</div>
+            <div id="profileInfo" style="font-size:13px;line-height:2.2;color:var(--muted)">Cargando...</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Cambiar contraseña</div>
+            <div class="fg"><label>Contraseña actual</label><input type="password" id="pwCurrent" placeholder="••••••••" /></div>
+            <div class="fg"><label>Nueva contraseña</label><input type="password" id="pwNew" placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 número" /></div>
+            <div class="fg"><label>Confirmar nueva contraseña</label><input type="password" id="pwConfirm" placeholder="Repite la contraseña" /></div>
+            <button class="btn btn-primary" onclick="changePassword()" style="width:100%">Cambiar contraseña</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:0">
+          <div class="card-title">Mis permisos</div>
+          <div id="permissionsPanel" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px"></div>
+        </div>
+      </div>
+
+      <!-- AUDITORÍA ───────────────────────────────────────── -->
+      <div class="page" id="page-audit">
+        <div class="page-title">Auditoría Blockchain</div>
+        <div class="page-sub">Registro inmutable de todos los votos — verificable en el smart contract</div>
+        <div class="kpi-grid">
+          <div class="kpi cyan">   <div class="kpi-icon">⛓️</div><div class="kpi-label">Total Bloques</div><div class="kpi-val" id="a-blocks">—</div></div>
+          <div class="kpi green">  <div class="kpi-icon">✅</div><div class="kpi-label">En Cadena Real</div><div class="kpi-val" id="a-onchain">—</div></div>
+          <div class="kpi purple"> <div class="kpi-icon">🔐</div><div class="kpi-label">Solo Hash Local</div><div class="kpi-val" id="a-local">—</div></div>
+          <div class="kpi orange"> <div class="kpi-icon">📄</div><div class="kpi-label">Páginas</div><div class="kpi-val" id="a-pages">—</div></div>
+        </div>
+        <div class="chain-panel">
+          <div class="chain-panel-title">⛓️ Log de bloques</div>
+          <div id="auditLog"><div class="empty"><div class="icon">⛓️</div><p>No hay bloques aún — emite votos primero</p></div></div>
+        </div>
+        <!-- Verificar tx hash -->
+        <div class="card">
+          <div class="card-title">Verificar transacción</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <input type="text" id="verifyHash" placeholder="Pega el transaction hash aquí..." style="flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;font-family:'JetBrains Mono',monospace" />
+            <button class="btn btn-chain" onclick="verifyTx()">🔍 Verificar</button>
+          </div>
+          <div id="verifyResult" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+      <!-- ACTIVIDAD ──────────────────────────────────────────── -->
+      <div class="page" id="page-activity">
+        <div class="page-title">Log de Actividad</div>
+        <div class="page-sub">Registro de acciones del sistema</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Acción</th><th>Usuario</th><th>Detalle</th><th>Fecha</th></tr></thead>
+            <tbody id="activityTable"><tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)">⟳ Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+<!-- MODAL: Votar ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="voteModal">
+  <div class="modal">
+    <h2 id="voteModalTitle">Emitir Voto</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px" id="voteModalDesc"></p>
+    <div id="voteOptions" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px"></div>
+    <div id="voteChainInfo" style="font-size:12px;color:var(--chain);padding:10px;background:#030d1f;border:1px solid #0e3355;border-radius:8px;margin-bottom:16px">
+      ⛓️ Este voto será enviado como transacción al smart contract
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('voteModal')">Cancelar</button>
+      <button class="btn btn-primary" id="submitVoteBtn" onclick="submitVote()">⛓️ Firmar y Votar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nuevo Usuario ─────────────────────────────────── -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <h2>Nuevo Usuario</h2>
+    <div class="fg"><label>Nombre completo *</label><input type="text" id="uName" placeholder="Juan García" /></div>
+    <div class="fg"><label>Email corporativo *</label><input type="email" id="uEmail" placeholder="juan@empresa.com" /></div>
+    <div class="fg"><label>Contraseña *</label><input type="password" id="uPass" placeholder="Mínimo 6 caracteres" /></div>
+    <div class="form-row">
+      <div class="fg"><label>Departamento</label>
+        <select id="uDept"><option>Tecnología</option><option>RRHH</option><option>Operaciones</option><option>Finanzas</option><option>Marketing</option><option>Legal</option></select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('userModal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveUser()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Resultados ───────────────────────────────────── -->
+<div class="modal-overlay" id="resultsModal">
+  <div class="modal">
+    <h2 id="resModalTitle">Resultados</h2>
+    <div id="resModalContent"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('resultsModal')">Cerrar</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG — detecta XAMPP vs directo
+// ══════════════════════════════════════════════════════════
+const IS_XAMPP = window.location.pathname.includes('/votechain/');
+const API = IS_XAMPP
+  ? '/votechain/api/proxy.php?path='     // a través del proxy PHP de XAMPP
+  : 'http://localhost:3001/api/';        // directo a Node.js
+
+function apiUrl(path, query = '') {
+  if (IS_XAMPP) return `${API}${path}${query ? '&' + query : ''}`;
+  return `${API}${path}${query ? '?' + query : ''}`;
+}
+
+const COLORS = ['#2f80ed','#7c3aed','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899'];
+let TOKEN = '', REFRESH_TOKEN = '', ME = null, allVotes = [], allUsers = [];
+let selectedOptionId = null, currentVoteId = null;
+let barChart = null, doughnutChart = null, detailChart = null;
+let tokenRefreshTimer = null;
+
+// ── Persistencia de sesión ────────────────────────────────
+function saveSession(accessToken, refreshToken) {
+  TOKEN = accessToken; REFRESH_TOKEN = refreshToken;
+  sessionStorage.setItem('vc_access', accessToken);
+  sessionStorage.setItem('vc_refresh', refreshToken);
+}
+function clearSession() {
+  TOKEN = ''; REFRESH_TOKEN = '';
+  sessionStorage.removeItem('vc_access');
+  sessionStorage.removeItem('vc_refresh');
+  if (tokenRefreshTimer) clearInterval(tokenRefreshTimer);
+}
+
+// ── Auto-renovar token cada 90 min ───────────────────────
+function startTokenRefresh() {
+  if (tokenRefreshTimer) clearInterval(tokenRefreshTimer);
+  tokenRefreshTimer = setInterval(async () => {
+    if (!REFRESH_TOKEN) return;
+    try {
+      const res  = await fetch(apiUrl('auth/refresh'), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: REFRESH_TOKEN })
+      });
+      const data = await res.json();
+      if (res.ok) { saveSession(data.accessToken, data.refreshToken); }
+      else { doLogout(); }
+    } catch { doLogout(); }
+  }, 90 * 60 * 1000);
+}
+
+// ── Verificar permiso ─────────────────────────────────────
+function can(permission) { return ME?.permissions?.includes(permission) ?? false; }
+
+// ══════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════
+function toast(msg, type = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show toast-${type}`;
+  setTimeout(() => t.className = 'toast', 3500);
+}
+function initials(n = '') { return n.split(' ').map(w => w[0] || '').join('').slice(0, 2).toUpperCase(); }
+function colorFor(n = '') { return COLORS[n.charCodeAt(0) % COLORS.length]; }
+function fdate(d) { return new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }); }
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function authH() { return { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}` }; }
+
+// ══════════════════════════════════════════════════════════
+// BLOCKCHAIN STATUS CHECK
+// ══════════════════════════════════════════════════════════
+async function checkBlockchainStatus() {
+  const dot   = document.getElementById('chainDot');
+  const label = document.getElementById('chainLabel');
+  try {
+    const res  = await fetch(apiUrl('health'));
+    const data = await res.json();
+    if (data.status === 'ok') {
+      dot.className   = 'chain-dot ok';
+      label.textContent = '⛓️ Blockchain activo';
+    }
+  } catch {
+    dot.className   = 'chain-dot err';
+    label.textContent = 'Backend desconectado';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  try {
+    const res  = await fetch(apiUrl('auth/login'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Credenciales inválidas'; errEl.style.display = 'block'; return; }
+    saveSession(data.accessToken, data.refreshToken);
+    ME = data.user;
+    startTokenRefresh();
+    applyPermissions();
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appShell').style.display    = 'block';
+    checkBlockchainStatus();
+    loadAll();
+  } catch {
+    errEl.textContent = IS_XAMPP
+      ? 'No se puede conectar. Verifica que Node.js esté corriendo (npm start)'
+      : 'No se puede conectar al servidor en localhost:3001';
+    errEl.style.display = 'block';
+  }
+}
+
+async function doLogout() {
+  try {
+    await fetch(apiUrl('auth/logout'), {
+      method: 'POST', headers: authH(),
+      body: JSON.stringify({ refreshToken: REFRESH_TOKEN })
+    });
+  } catch {}
+  clearSession(); ME = null;
+  document.getElementById('appShell').style.display    = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+// ── Aplicar permisos en la UI ─────────────────────────────
+function applyPermissions() {
+  if (!ME) return;
+  document.getElementById('headerUser').textContent = `${ME.name} (${ME.role})`;
+  // Menú admin
+  const isAdmin   = ME.role === 'admin';
+  const isManager = ME.role === 'manager' || isAdmin;
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
+  document.querySelectorAll('.manager-only').forEach(el => el.style.display = isManager ? '' : 'none');
+  // Mostrar badge de rol
+  const roleBadge = document.getElementById('roleBadge');
+  if (roleBadge) {
+    const colors = { admin:'#7c3aed', manager:'#2f80ed', employee:'#10b981', auditor:'#f59e0b' };
+    roleBadge.textContent = ME.role.toUpperCase();
+    roleBadge.style.color = colors[ME.role] || '#fff';
+  }
+}
+
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ══════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  const nav = document.getElementById(`nav-${page}`);
+  if (nav) nav.classList.add('active');
+  if (page === 'stats')     loadStats();
+  if (page === 'audit')     loadAudit();
+  if (page === 'users')     loadUsers();
+  if (page === 'voting')    renderVotes();
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'profile')   loadProfile();
+  if (page === 'activity')  loadActivity();
+}
+
+// ══════════════════════════════════════════════════════════
+// LOAD ALL
+// ══════════════════════════════════════════════════════════
+async function loadAll() {
+  await loadVotes();
+  loadDashboard();
+  // Show contract address preview
+  document.getElementById('contractAddrPrev').textContent = '0x5FbDB231...';
+}
+
+// ══════════════════════════════════════════════════════════
+// VOTES
+// ══════════════════════════════════════════════════════════
+async function loadVotes() {
+  try {
+    const res  = await fetch(apiUrl('voting'), { headers: authH() });
+    const data = await res.json();
+    allVotes   = data.votes || [];
+    renderVotes();
+  } catch { toast('Error cargando votaciones', 'err'); }
+}
+
+function renderVotes() {
+  const q  = (document.getElementById('voteSearch')?.value || '').toLowerCase();
+  const sf = document.getElementById('voteStatusFilter')?.value || '';
+  const list = allVotes.filter(v =>
+    (!q  || v.title.toLowerCase().includes(q)) &&
+    (!sf || v.status === sf)
+  );
+  const el = document.getElementById('voteCards');
+  if (!list.length) { el.innerHTML = '<div class="empty"><div class="icon">🗳️</div><p>No hay votaciones</p></div>'; return; }
+  el.innerHTML = list.map(v => `
+    <div class="vote-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <span class="badge badge-${v.status}">${v.status === 'active' ? '● Activa' : v.status === 'paused' ? '⏸ Pausada' : '✓ Cerrada'}</span>
+        ${v.blockchainEnabled ? `<span class="badge badge-chain">⛓️ ${v.chainVoteId ? 'ID #' + v.chainVoteId : 'pendiente'}</span>` : ''}
+      </div>
+      <div class="vote-card-title">${v.title}</div>
+      <div class="vote-card-desc">${v.description || ''}</div>
+      <div class="vote-bar"><div class="vote-bar-fill" style="width:${Math.min(100, v.totalVotes * 8)}%"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
+        <span style="font-size:12px;color:var(--muted)">${v.totalVotes} votos · cierra ${fdate(v.endDate)}</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${v.status === 'active' && !v.hasVoted ? `<button class="btn btn-success btn-sm" onclick="openVoteModal('${v.id}')">Votar</button>` : ''}
+          ${v.hasVoted ? '<span style="font-size:12px;color:var(--green)">✓ Votado</span>' : ''}
+          <button class="btn btn-ghost btn-sm" onclick="showResults('${v.id}')">Resultados</button>
+          ${ME?.role === 'admin' && v.status === 'active' ? `<button class="btn btn-danger btn-sm" onclick="closeVote('${v.id}')">Cerrar</button>` : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// VOTE MODAL
+// ══════════════════════════════════════════════════════════
+function openVoteModal(voteId) {
+  const v = allVotes.find(x => x.id === voteId);
+  if (!v) return;
+  currentVoteId    = voteId;
+  selectedOptionId = null;
+  document.getElementById('voteModalTitle').textContent = v.title;
+  document.getElementById('voteModalDesc').textContent  = v.description || '';
+  document.getElementById('voteChainInfo').innerHTML = v.blockchainEnabled && v.chainVoteId
+    ? `⛓️ Votación <strong>#${v.chainVoteId}</strong> en el smart contract · tu voto será una transacción real`
+    : '⚠️ Modo solo-memoria (blockchain no disponible o no configurado)';
+  document.getElementById('voteOptions').innerHTML = (v.options || []).map(o => `
+    <div onclick="selectOption('${o.id}',this)"
+      style="background:var(--panel2);border:2px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .2s;font-size:14px;"
+      id="opt-${o.id}">${o.text}</div>`).join('');
+  openModal('voteModal');
+}
+
+function selectOption(optId, el) {
+  selectedOptionId = optId;
+  document.querySelectorAll('#voteOptions > div').forEach(d => {
+    d.style.borderColor = 'var(--border)'; d.style.background = 'var(--panel2)';
+  });
+  el.style.borderColor = 'var(--accent)'; el.style.background = '#0c1a2e';
+}
+
+async function submitVote() {
+  if (!selectedOptionId) { toast('Selecciona una opción primero', 'err'); return; }
+  const btn = document.getElementById('submitVoteBtn');
+  btn.textContent = '⏳ Firmando transacción...'; btn.disabled = true;
+  try {
+    const res  = await fetch(apiUrl(`voting/${currentVoteId}/cast`), {
+      method: 'POST', headers: authH(), body: JSON.stringify({ optionId: selectedOptionId })
+    });
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || 'Error al votar', 'err'); return; }
+
+    const short = (data.transactionHash || '').slice(0, 18) + '...';
+    if (data.onChain) {
+      toast(`✅ Voto en blockchain · Bloque #${data.ethBlockNumber} · ${short}`, 'ok');
+    } else {
+      toast(`⚠️ Voto guardado (blockchain no disponible) · Hash: ${short}`, 'info');
+    }
+    closeModal('voteModal');
+    await loadVotes();
+    loadDashboard();
+  } catch { toast('Error de conexión', 'err'); }
+  finally  { btn.textContent = '⛓️ Firmar y Votar'; btn.disabled = false; }
+}
+
+async function closeVote(voteId) {
+  if (!confirm('¿Cerrar esta votación? También se cerrará en el smart contract.')) return;
+  try {
+    const res = await fetch(apiUrl(`voting/${voteId}/status`), {
+      method: 'PATCH', headers: authH(), body: JSON.stringify({ status: 'closed' })
+    });
+    if (res.ok) { toast('Votación cerrada'); await loadVotes(); loadDashboard(); }
+  } catch { toast('Error', 'err'); }
+}
+
+// ══════════════════════════════════════════════════════════
+// RESULTS MODAL
+// ══════════════════════════════════════════════════════════
+async function showResults(voteId) {
+  try {
+    const res  = await fetch(apiUrl(`results/${voteId}`), { headers: authH() });
+    const data = await res.json();
+    document.getElementById('resModalTitle').textContent = data.title;
+
+    const barsHTML = (data.results || []).map((r, i) => `
+      <div class="result-bar">
+        <div class="result-bar-header">
+          <span>${r.text}</span>
+          <span class="result-bar-pct">${r.percentage}%</span>
+        </div>
+        <div class="result-bar-bg">
+          <div class="result-bar-fill" style="width:${r.percentage}%;background:${COLORS[i % COLORS.length]}"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">${r.votes} votos</div>
+      </div>`).join('');
+
+    const chainHTML = data.chainResults
+      ? `<div class="verify-strip">⛓️ Datos verificados desde el smart contract · Chain Vote ID: <strong>#${data.chainVoteId}</strong></div>`
+      : '';
+
+    document.getElementById('resModalContent').innerHTML = `
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+        <span style="font-size:13px;color:var(--muted)">Total: <strong style="color:#fff">${data.totalVotes}</strong></span>
+        <span class="badge badge-${data.status}">${data.status}</span>
+        ${data.blockchainEnabled ? `<span class="badge badge-chain">⛓️ ${data.onChainVotes} en cadena</span>` : ''}
+      </div>
+      ${barsHTML}
+      ${data.winner && data.totalVotes > 0 ? `<div style="margin-top:16px;padding:12px;background:#052e16;border:1px solid #166534;border-radius:10px;font-size:13px;color:#4ade80">🏆 Opción ganadora: <strong>${data.winner.text}</strong> con ${data.winner.percentage}%</div>` : ''}
+      ${chainHTML}
+    `;
+    openModal('resultsModal');
+  } catch { toast('Error cargando resultados', 'err'); }
+}
+
+// ══════════════════════════════════════════════════════════
+// CREATE VOTE
+// ══════════════════════════════════════════════════════════
+function addOption() {
+  const n = document.querySelectorAll('#optionsContainer .option-item').length + 1;
+  const d = document.createElement('div'); d.className = 'option-item';
+  d.innerHTML = `<input type="text" placeholder="Opción ${n}" /><button class="btn-remove" onclick="removeOption(this)">✕</button>`;
+  document.getElementById('optionsContainer').appendChild(d);
+}
+function removeOption(btn) {
+  if (document.querySelectorAll('#optionsContainer .option-item').length <= 2) { toast('Mínimo 2 opciones', 'err'); return; }
+  btn.parentElement.remove();
+}
+
+async function createVote() {
+  const title   = document.getElementById('cvTitle').value.trim();
+  const desc    = document.getElementById('cvDesc').value.trim();
+  const endDate = document.getElementById('cvEnd').value;
+  const anon    = document.getElementById('cvAnon').checked;
+  const chain   = document.getElementById('cvChain').checked;
+  const options = [...document.querySelectorAll('#optionsContainer input')].map(i => i.value.trim()).filter(Boolean);
+
+  if (!title)           { toast('El título es requerido', 'err'); return; }
+  if (!endDate)         { toast('La fecha de cierre es requerida', 'err'); return; }
+  if (options.length < 2) { toast('Mínimo 2 opciones', 'err'); return; }
+
+  toast('⏳ Desplegando en blockchain...', 'info');
+  try {
+    const res  = await fetch(apiUrl('voting'), {
+      method: 'POST', headers: authH(),
+      body: JSON.stringify({ title, description: desc, options, endDate: new Date(endDate).toISOString(), anonymous: anon, blockchainEnabled: chain })
+    });
+    const data = await res.json();
+    if (!res.ok) { toast(data.errors?.[0]?.msg || data.error || 'Error', 'err'); return; }
+
+    const msg = data.vote.chainVoteId
+      ? `✅ Votación creada · Chain ID #${data.vote.chainVoteId}`
+      : '⚠️ Votación creada (blockchain no disponible)';
+    toast(msg, data.vote.chainVoteId ? 'ok' : 'info');
+
+    await loadVotes();
+    navigate('voting');
+    document.getElementById('cvTitle').value = '';
+    document.getElementById('cvDesc').value  = '';
+    document.getElementById('cvEnd').value   = '';
+  } catch { toast('Error de conexión', 'err'); }
+}
+
+// ══════════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════════
+async function loadDashboard() {
+  try {
+    const res  = await fetch(apiUrl('results'), { headers: authH() });
+    const data = await res.json();
+    const k    = data.kpis || {};
+    document.getElementById('d-total').textContent  = k.totalVotaciones ?? '—';
+    document.getElementById('d-active').textContent = k.activas ?? '—';
+    document.getElementById('d-votes').textContent  = k.totalVotos ?? '—';
+    document.getElementById('d-chain').textContent  = k.votosEnCadena ?? '—';
+    document.getElementById('d-chain-sub').textContent = k.totalVotos
+      ? `de ${k.totalVotos} totales` : '';
+
+    const list = (data.votosPorVotacion || []).slice(0, 6);
+    document.getElementById('dashVoteList').innerHTML = list.length
+      ? list.map(v => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${v.title}</div>
+            <div style="font-size:11px;color:var(--muted)">${v.totalVotes} votos · ${v.participantCount} participantes${v.chainVoteId ? ' · ⛓️ #' + v.chainVoteId : ''}</div>
+          </div>
+          <span class="badge badge-${v.status}">${v.status === 'active' ? 'Activa' : 'Cerrada'}</span>
+        </div>`).join('')
+      : '<div class="empty"><div class="icon">🗳️</div><p>No hay votaciones aún</p></div>';
+  } catch {}
+}
+
+// ══════════════════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════════════════
+async function loadStats() {
+  try {
+    const res  = await fetch(apiUrl('results'), { headers: authH() });
+    const data = await res.json();
+    const list = data.votosPorVotacion || [];
+
+    // Populate selector
+    const sel = document.getElementById('statsVoteSelect');
+    sel.innerHTML = '<option value="">— Selecciona una votación —</option>' +
+      list.map(v => `<option value="${v.id}">${v.title} (${v.totalVotes} votos)</option>`).join('');
+
+    // Bar chart
+    const labels = list.map(v => v.title.length > 22 ? v.title.slice(0, 22) + '…' : v.title);
+    const vals   = list.map(v => v.totalVotes);
+
+    if (barChart)    { barChart.destroy();    barChart = null; }
+    if (doughnutChart) { doughnutChart.destroy(); doughnutChart = null; }
+
+    Chart.defaults.color = '#4a6080';
+    if (labels.length) {
+      barChart = new Chart(document.getElementById('statsBarChart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ label: 'Votos', data: vals, backgroundColor: COLORS.map(c => c + 'cc'), borderRadius: 6, borderSkipped: false }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#4a6080' } },
+            y: { grid: { color: '#1a3050' }, ticks: { stepSize: 1, color: '#4a6080' }, min: 0 }
+          }
+        }
+      });
+      const active = list.filter(v => v.status === 'active').length;
+      const closed = list.filter(v => v.status === 'closed').length;
+      doughnutChart = new Chart(document.getElementById('statsDoughnut'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Activas', 'Cerradas'],
+          datasets: [{ data: [active, closed], backgroundColor: ['rgba(47,128,237,.8)', 'rgba(124,58,237,.8)'], borderColor: 'var(--bg)', borderWidth: 3 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '65%',
+          plugins: { legend: { position: 'bottom', labels: { color: '#4a6080' } } }
+        }
+      });
+    }
+
+    // Table
+    document.getElementById('statsTable').innerHTML = list.length
+      ? `<table><thead><tr><th>Votación</th><th>Votos</th><th>Chain ID</th><th>Estado</th><th>Cierre</th><th></th></tr></thead><tbody>
+        ${list.map(v => `<tr>
+          <td style="font-weight:600;color:var(--text)">${v.title}</td>
+          <td style="color:#60a5fa;font-weight:700">${v.totalVotes}</td>
+          <td>${v.chainVoteId ? `<span class="badge badge-chain">⛓️ #${v.chainVoteId}</span>` : '<span style="color:var(--muted);font-size:11px">—</span>'}</td>
+          <td><span class="badge badge-${v.status}">${v.status === 'active' ? 'Activa' : 'Cerrada'}</span></td>
+          <td style="color:var(--muted)">${fdate(v.endDate)}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="showResults('${v.id}')">Ver</button></td>
+        </tr>`).join('')}</tbody></table>`
+      : '<div class="empty"><div class="icon">📊</div><p>No hay datos</p></div>';
+  } catch { toast('Error cargando estadísticas', 'err'); }
+}
+
+async function loadVoteDetail() {
+  const voteId = document.getElementById('statsVoteSelect').value;
+  if (!voteId) { document.getElementById('statsVoteDetail').innerHTML = ''; return; }
+  try {
+    const res  = await fetch(apiUrl(`results/${voteId}`), { headers: authH() });
+    const data = await res.json();
+    renderVoteDetailChart(data);
+  } catch { toast('Error', 'err'); }
+}
+
+async function loadVoteDetailFromChain() {
+  const voteId = document.getElementById('statsVoteSelect').value;
+  if (!voteId) { toast('Selecciona una votación primero', 'err'); return; }
+  toast('⛓️ Leyendo datos del smart contract...', 'info');
+  try {
+    const res  = await fetch(apiUrl(`results/${voteId}`), { headers: authH() });
+    const data = await res.json();
+    if (data.chainResults) {
+      toast('✅ Datos leídos directamente del blockchain', 'ok');
+      renderVoteDetailChart(data, true);
+    } else {
+      toast('⚠️ Chain ID no disponible — mostrando datos del backend', 'info');
+      renderVoteDetailChart(data, false);
+    }
+  } catch { toast('Error', 'err'); }
+}
+
+function renderVoteDetailChart(data, fromChain = false) {
+  const src = fromChain && data.chainResults ? data.chainResults : data.results;
+  const total = src.reduce((s, r) => s + (parseInt(r.voteCount || r.votes) || 0), 0);
+  const items = src.map(r => ({
+    text: r.text,
+    votes: parseInt(r.voteCount || r.votes) || 0,
+    pct: total > 0 ? parseFloat(((parseInt(r.voteCount || r.votes) / total) * 100).toFixed(1)) : 0,
+  }));
+
+  const canvasId = 'detailPieChart';
+  document.getElementById('statsVoteDetail').innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">${data.title}</div>
+        ${fromChain ? '<span class="badge badge-chain">⛓️ Datos del smart contract</span>' : '<span style="font-size:11px;color:var(--muted)">Datos del backend</span>'}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          ${items.map((r, i) => `
+            <div class="result-bar">
+              <div class="result-bar-header">
+                <span>${r.text}</span>
+                <span class="result-bar-pct">${r.pct}%</span>
+              </div>
+              <div class="result-bar-bg">
+                <div class="result-bar-fill" style="width:${r.pct}%;background:${COLORS[i % COLORS.length]}"></div>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">${r.votes} votos</div>
+            </div>`).join('')}
+        </div>
+        <div style="position:relative;height:220px"><canvas id="${canvasId}"></canvas></div>
+      </div>
+    </div>`;
+
+  if (detailChart) { detailChart.destroy(); detailChart = null; }
+  detailChart = new Chart(document.getElementById(canvasId), {
+    type: 'doughnut',
+    data: {
+      labels: items.map(r => r.text),
+      datasets: [{ data: items.map(r => r.votes), backgroundColor: COLORS, borderColor: 'var(--panel)', borderWidth: 3 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '55%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#4a6080', boxWidth: 12 } } }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// USERS
+// ══════════════════════════════════════════════════════════
+async function loadUsers() {
+  try {
+    const res  = await fetch(apiUrl('auth/users'), { headers: authH() });
+    const data = await res.json();
+    allUsers   = data.users || [];
+    renderUsers();
+  } catch { toast('Error cargando usuarios', 'err'); }
+}
+
+function renderUsers() {
+  const q  = (document.getElementById('userSearch')?.value || '').toLowerCase();
+  const rf = document.getElementById('userRoleFilter')?.value || '';
+  const list = allUsers.filter(u =>
+    (!q  || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) &&
+    (!rf || u.role === rf)
+  );
+  document.getElementById('usersTable').innerHTML = list.length
+    ? list.map(u => `<tr>
+        <td><div class="user-cell">
+          <div class="avatar" style="background:${colorFor(u.name)}22;color:${colorFor(u.name)}">${initials(u.name)}</div>
+          <div><div class="user-name">${u.name}</div><div class="user-email">${u.email}</div></div>
+        </div></td>
+        <td style="color:var(--muted)">${u.department || '—'}</td>
+        <td><span class="badge badge-${u.role}">${u.role === 'admin' ? '🛡️ Admin' : '👤 Empleado'}</span></td>
+        <td style="color:var(--muted)">${(u.createdAt || '').split('T')[0]}</td>
+        ${can('roles:assign') ? `<td>
+          <select onchange="changeRole('${u.id}',this.value)" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;outline:none">
+            ${['admin','manager','employee','auditor'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}
+          </select>
+        </td>` : ''}
+      </tr>`).join('')
+    : '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)">No hay usuarios</td></tr>';
+}
+
+function openUserModal() {
+  ['uName', 'uEmail', 'uPass'].forEach(id => document.getElementById(id).value = '');
+  openModal('userModal');
+}
+
+async function saveUser() {
+  const name  = document.getElementById('uName').value.trim();
+  const email = document.getElementById('uEmail').value.trim();
+  const pass  = document.getElementById('uPass').value.trim();
+  const dept  = document.getElementById('uDept').value;
+  if (!name || !email || !pass) { toast('Todos los campos son requeridos', 'err'); return; }
+  try {
+    const res  = await fetch(apiUrl('auth/register'), { method: 'POST', headers: authH(), body: JSON.stringify({ name, email, password: pass, department: dept }) });
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || data.errors?.[0]?.msg || 'Error', 'err'); return; }
+    allUsers.push({ id: Date.now(), name, email, department: dept, role: 'employee', createdAt: new Date().toISOString().split('T')[0] });
+    toast(`✅ Usuario creado: ${name}`);
+    closeModal('userModal'); renderUsers();
+  } catch { toast('Error de conexión', 'err'); }
+}
+
+function exportCSV() {
+  const csv = ['ID,Nombre,Email,Departamento,Rol,Registro',
+    ...allUsers.map(u => `${u.id},"${u.name}",${u.email},${u.department || ''},${u.role},${(u.createdAt || '').split('T')[0]}`)
+  ].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `votechain_usuarios_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  toast('✅ CSV exportado');
+}
+
+// ══════════════════════════════════════════════════════════
+// AUDIT
+// ══════════════════════════════════════════════════════════
+async function loadAudit() {
+  try {
+    const res  = await fetch(apiUrl('audit'), { headers: authH() });
+    const data = await res.json();
+    const blocks = data.blocks || [];
+    const onChain = blocks.filter(b => b.onChain).length;
+    const local   = blocks.filter(b => !b.onChain).length;
+    document.getElementById('a-blocks').textContent  = data.total || 0;
+    document.getElementById('a-onchain').textContent = onChain;
+    document.getElementById('a-local').textContent   = local;
+    document.getElementById('a-pages').textContent   = data.totalPages || 1;
+
+    document.getElementById('auditLog').innerHTML = blocks.length
+      ? blocks.map(b => `
+        <div class="tx-row">
+          <div class="tx-num">Bloque #${b.blockNumber}</div>
+          <div class="tx-hash">${b.transactionHash}</div>
+          <span class="tx-time">${new Date(b.timestamp).toLocaleTimeString('es-MX')}</span>
+          ${b.onChain
+            ? `<span class="tx-on">⛓️ On-chain #${b.ethBlockNumber}</span>`
+            : `<span class="tx-off">📝 Hash local</span>`}
+        </div>`).join('')
+      : '<div class="empty"><div class="icon">⛓️</div><p>No hay bloques aún — emite votos primero</p></div>';
+  } catch { toast('Error cargando auditoría', 'err'); }
+}
+
+async function verifyTx() {
+  const hash = document.getElementById('verifyHash').value.trim();
+  if (!hash) { toast('Ingresa un hash', 'err'); return; }
+  try {
+    const res  = await fetch(apiUrl(`audit/verify/${hash}`), { headers: authH() });
+    const data = await res.json();
+    const el   = document.getElementById('verifyResult');
+    if (res.ok) {
+      el.innerHTML = `
+        <div class="verify-strip">
+          ✅ Transacción verificada · Bloque #${data.block.blockNumber} ·
+          ${data.block.onChain ? `⛓️ Confirmada en cadena (bloque Ethereum #${data.block.ethBlockNumber})` : '📝 Hash local'}
+          · Timestamp: ${new Date(data.block.timestamp).toLocaleString('es-MX')}
+        </div>`;
+    } else {
+      el.innerHTML = `<div style="color:var(--red);font-size:13px;padding:10px">❌ ${data.error}</div>`;
+    }
+  } catch { toast('Error', 'err'); }
+}
+
+// ══════════════════════════════════════════════════════════
+// GESTIÓN DE ROLES
+// ══════════════════════════════════════════════════════════
+async function changeRole(userId, newRole) {
+  try {
+    const res  = await fetch(apiUrl(`auth/users/${userId}/role`), {
+      method: 'PATCH', headers: authH(),
+      body: JSON.stringify({ role: newRole })
+    });
+    const data = await res.json();
+    if (res.ok) { toast(`✅ ${data.message}`); await loadUsers(); }
+    else { toast(data.error || 'Error', 'err'); await loadUsers(); }
+  } catch { toast('Error de conexión', 'err'); }
+}
+
+// ══════════════════════════════════════════════════════════
+// PERFIL & PERMISOS
+// ══════════════════════════════════════════════════════════
+async function loadProfile() {
+  if (!ME) return;
+  // Info de cuenta
+  document.getElementById('profileInfo').innerHTML = `
+    <span style="color:var(--text);font-weight:600">Nombre</span> ${ME.name}<br>
+    <span style="color:var(--text);font-weight:600">Email</span> ${ME.email}<br>
+    <span style="color:var(--text);font-weight:600">Rol</span> <span class="badge badge-${ME.role}">${ME.role}</span><br>
+    <span style="color:var(--text);font-weight:600">Departamento</span> ${ME.department || '—'}<br>
+    <span style="color:var(--text);font-weight:600">Último login</span> ${ME.lastLogin ? new Date(ME.lastLogin).toLocaleString('es-MX') : 'Primera sesión'}
+  `;
+  // Permisos
+  const panel = document.getElementById('permissionsPanel');
+  const perms = ME.permissions || [];
+  const icons = {
+    'vote:read':'👁️','vote:create':'➕','vote:close':'🔒','vote:delete':'🗑️',
+    'vote:cast':'🗳️','results:read':'📊','audit:read':'⛓️',
+    'users:read':'👥','users:create':'➕','users:edit':'✏️','users:deactivate':'🚫',
+    'roles:assign':'🛡️','export:csv':'⬇️'
+  };
+  panel.innerHTML = perms.map(p => `
+    <span style="background:rgba(47,128,237,.1);border:1px solid rgba(47,128,237,.3);color:#60a5fa;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600">
+      ${icons[p] || '•'} ${p}
+    </span>`).join('');
+}
+
+async function changePassword() {
+  const current = document.getElementById('pwCurrent').value;
+  const newPw   = document.getElementById('pwNew').value;
+  const confirm = document.getElementById('pwConfirm').value;
+  if (!current || !newPw) { toast('Completa todos los campos', 'err'); return; }
+  if (newPw !== confirm)  { toast('Las contraseñas no coinciden', 'err'); return; }
+  try {
+    const res  = await fetch(apiUrl('auth/me/password'), {
+      method: 'PATCH', headers: authH(),
+      body: JSON.stringify({ currentPassword: current, newPassword: newPw })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      toast('✅ Contraseña actualizada');
+      ['pwCurrent','pwNew','pwConfirm'].forEach(id => document.getElementById(id).value = '');
+    } else {
+      toast(data.errors?.[0]?.msg || data.error || 'Error', 'err');
+    }
+  } catch { toast('Error de conexión', 'err'); }
+}
+
+// ══════════════════════════════════════════════════════════
+// ACTIVITY LOG
+// ══════════════════════════════════════════════════════════
+async function loadActivity() {
+  try {
+    const res  = await fetch(apiUrl('auth/activity'), { headers: authH() });
+    const data = await res.json();
+    const icons = {
+      LOGIN_SUCCESS:'✅', LOGIN_FAILED:'❌', LOGOUT:'👋',
+      TOKEN_REFRESHED:'🔄', USER_REGISTERED:'➕', ROLE_CHANGED:'🛡️',
+      USER_ACTIVATED:'✅', USER_DEACTIVATED:'🚫', PASSWORD_CHANGED:'🔑',
+    };
+    document.getElementById('activityTable').innerHTML = (data.log || []).length
+      ? data.log.map(l => `<tr>
+          <td><span style="font-size:13px">${icons[l.action] || '•'} ${l.action}</span></td>
+          <td style="color:var(--muted);font-size:12px">${l.userId ? l.userId.slice(0,8)+'...' : '—'}</td>
+          <td style="color:var(--muted);font-size:12px">${JSON.stringify(l.meta||{})}</td>
+          <td style="color:var(--muted);font-size:12px">${new Date(l.timestamp).toLocaleString('es-MX')}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)">No hay actividad registrada aún</td></tr>';
+  } catch { toast('Error cargando actividad', 'err'); }
+}
+
+// ── Cerrar modales al clic fuera ──────────────────────────
+['voteModal', 'userModal', 'resultsModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(id); });
+});
+</script>
+</body>
+</html>
