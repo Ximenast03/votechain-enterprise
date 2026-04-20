@@ -361,7 +361,7 @@
     <div class="login-brand">
       <div class="brand-icon">🔑</div>
       <h1>Recuperar contraseña</h1>
-      <p>Ingresa el email con el que te registraste</p>
+      <p>Te enviaremos un código a tu correo de respaldo</p>
     </div>
     <div class="login-error" id="forgotError"></div>
     <div class="fg">
@@ -385,7 +385,7 @@
     </div>
     <div class="login-error" id="verifyError"></div>
     <div style="background:rgba(47,128,237,.08);border:1px solid rgba(47,128,237,.25);color:#60a5fa;padding:12px 14px;border-radius:8px;font-size:12px;margin-bottom:16px;text-align:center;line-height:1.6">
-      📧 Revisa tu correo de respaldo · El código expira en <strong>15 minutos</strong>
+      📧 Revisa tu correo de respaldo · El código es válido por 15 minutos
     </div>
     <div class="fg">
       <label>Código de 6 dígitos</label>
@@ -427,7 +427,7 @@
 <div class="modal-overlay" id="userRegistroModal">
   <div class="modal">
     <h2 style="color:var(--accent); margin-bottom:5px;">Registro de Votante</h2>
-    <p style="font-size:12px; color:var(--muted); margin-bottom:20px;">Identifícate con tu CURP para participar</p>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:20px;">Completa tus datos para crear tu cuenta</p>
     <div class="fg">
       <label>CURP *</label>
       <input type="text" id="uCurp" maxlength="18" style="text-transform:uppercase; font-family:monospace;" placeholder="18 caracteres" />
@@ -491,7 +491,7 @@
       <div class="nav-section admin-only">
         <div class="nav-label">Administración</div>
         <div class="nav-item" onclick="navigate('users')"  id="nav-users">👥 Usuarios</div>
-        <div class="nav-item" onclick="navigate('audit')"  id="nav-audit">⛓️ Auditoría</div>
+        <div class="nav-item" onclick="navigate('audit')"  id="nav-audit">🛡️ Registro de Votos</div>
         <div class="nav-item" onclick="navigate('activity')" id="nav-activity">📋 Actividad</div>
       </div>
       <div class="nav-section">
@@ -505,15 +505,15 @@
       <!-- DASHBOARD ─────────────────────────────────────── -->
       <div class="page active" id="page-dashboard">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Dashboard</div><button class="btn btn-ghost btn-sm" onclick="loadDashboard();loadVotes()" title="Refresh">↺ Refresh</button></div>
-        <div class="page-sub">Estado general del sistema en tiempo real</div>
+        <div class="page-sub">Resumen de todo lo que está pasando en tu organización</div>
         <div class="kpi-grid">
           <div class="kpi blue">  <div class="kpi-icon">🗳️</div><div class="kpi-label">Votaciones</div><div class="kpi-val" id="d-total">—</div></div>
           <div class="kpi green"> <div class="kpi-icon">✅</div><div class="kpi-label">Activas</div><div class="kpi-val" id="d-active">—</div></div>
           <div class="kpi purple"><div class="kpi-icon">👥</div><div class="kpi-label">Total Votos</div><div class="kpi-val" id="d-votes">—</div></div>
-          <div class="kpi cyan">  <div class="kpi-icon">⛓️</div><div class="kpi-label">En Blockchain</div><div class="kpi-val" id="d-chain">—</div><div class="kpi-sub" id="d-chain-sub"></div></div>
+          <div class="kpi cyan">  <div class="kpi-icon">✅</div><div class="kpi-label">Votos Verificados</div><div class="kpi-val" id="d-chain">—</div><div class="kpi-sub" id="d-chain-sub"></div></div>
         </div>
         <div class="card">
-          <div class="card-title">Votaciones recientes</div>
+          <div class="card-title">Últimas votaciones</div>
           <div id="dashVoteList"><div class="empty"><div class="icon">⟳</div><p>Cargando...</p></div></div>
         </div>
       </div>
@@ -521,7 +521,7 @@
       <!-- VOTACIONES ─────────────────────────────────────── -->
       <div class="page" id="page-voting">
         <div class="page-title">Votaciones</div>
-        <div class="page-sub">Participa en las votaciones activas de tu organización</div>
+        <div class="page-sub">Aquí puedes ver y participar en las votaciones abiertas</div>
         <div class="toolbar">
           <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="voteSearch" placeholder="Buscar..." oninput="renderVotes()" /></div>
           <select class="sel" id="voteStatusFilter" onchange="renderVotes()">
@@ -537,7 +537,7 @@
       <!-- CREAR VOTACIÓN ─────────────────────────────────── -->
       <div class="page" id="page-create">
         <div class="page-title">Crear Votación</div>
-        <div class="page-sub">La votación se registrará automáticamente en el smart contract</div>
+        <div class="page-sub">Crea una nueva votación para que tu equipo pueda participar</div>
         <div class="card">
           <div class="fg"><label>Título *</label><input type="text" id="cvTitle" placeholder="Ej: Modelo de trabajo 2025" /></div>
           <div class="fg"><label>Descripción</label><textarea id="cvDesc" placeholder="Describe el propósito..."></textarea></div>
@@ -574,29 +574,29 @@
       <!-- ESTADÍSTICAS ────────────────────────────────────── -->
       <div class="page" id="page-stats">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Estadísticas</div><button class="btn btn-ghost btn-sm" onclick="loadStats()" title="Refresh">↺ Refresh</button></div>
-        <div class="page-sub">Datos en tiempo real </div>
+        <div class="page-sub">Consulta los resultados y el avance de cada votación</div>
         <div class="card" style="margin-bottom:16px">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <label style="font-size:13px;color:var(--muted);font-weight:600">Votación:</label>
             <select class="sel" id="statsVoteSelect" onchange="loadVoteDetail()" style="flex:1;max-width:400px">
               <option value="">— Selecciona una votación —</option>
             </select>
-            <button class="btn btn-chain btn-sm" onclick="loadVoteDetailFromChain()"> Leer votacion </button>
+            <button class="btn btn-chain btn-sm" onclick="loadVoteDetailFromChain()"> Actualizar resultados </button>
           </div>
         </div>
         <div id="statsVoteDetail"></div>
         <div class="charts-grid">
           <div class="card">
-            <div class="card-title">Datos por votación</div>
+            <div class="card-title">Resultados por votación</div>
             <div class="chart-wrap"><canvas id="statsBarChart"></canvas></div>
           </div>
           <div class="card">
-            <div class="card-title">Estados del sistema</div>
+            <div class="card-title">Estado de las votaciones</div>
             <div class="chart-wrap"><canvas id="statsDoughnut"></canvas></div>
           </div>
         </div>
         <div class="card">
-          <div class="card-title">Tabla resumen</div>
+          <div class="card-title">Resumen general</div>
           <div id="statsTable"></div>
         </div>
       </div>
@@ -604,7 +604,7 @@
       <!-- USUARIOS ────────────────────────────────────────── -->
       <div class="page" id="page-users">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Gestión de Usuarios</div><button class="btn btn-ghost btn-sm" onclick="loadUsers()" title="Refresh">↺ Refresh</button></div>
-        <div class="page-sub">Usuarios registrados en el sistema</div>
+        <div class="page-sub">Administra quién tiene acceso y qué puede hacer</div>
         <div class="toolbar">
           <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="userSearch" placeholder="Buscar..." oninput="renderUsers()" /></div>
           <select class="sel" id="userRoleFilter" onchange="renderUsers()">
@@ -626,10 +626,10 @@
       <!-- PERFIL / CAMBIAR CONTRASEÑA ──────────────────────── -->
       <div class="page" id="page-profile">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Mi Perfil</div><button class="btn btn-ghost btn-sm" onclick="loadProfile()" title="Refresh">↺ Refresh</button></div>
-        <div class="page-sub">Gestiona tu cuenta y seguridad</div>
+        <div class="page-sub">Revisa y actualiza tu información personal</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
           <div class="card">
-            <div class="card-title">Información de cuenta</div>
+            <div class="card-title">Mis datos</div>
             <div id="profileInfo" style="font-size:13px;line-height:2.2;color:var(--muted)">Cargando...</div>
           </div>
           <div class="card">
@@ -641,30 +641,30 @@
           </div>
         </div>
         <div class="card" style="margin-top:0">
-          <div class="card-title">Mis permisos</div>
+          <div class="card-title">Lo que puedo hacer</div>
           <div id="permissionsPanel" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px"></div>
         </div>
       </div>
 
       <!-- AUDITORÍA ───────────────────────────────────────── -->
       <div class="page" id="page-audit">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Auditoría </div><button class="btn btn-ghost btn-sm" onclick="loadAudit()" title="Refresh">↺ Refresh</button></div>
-        <div class="page-sub">Registro inmutable de todos los votos </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Historial de Votos</div><button class="btn btn-ghost btn-sm" onclick="loadAudit()" title="Refresh">↺ Refresh</button></div>
+        <div class="page-sub">Consulta el historial completo de todas las votaciones</div>
         <div class="kpi-grid">
-          <div class="kpi cyan">   <div class="kpi-icon">⛓️</div><div class="kpi-label">Total Bloques</div><div class="kpi-val" id="a-blocks">—</div></div>
-          <div class="kpi green">  <div class="kpi-icon">✅</div><div class="kpi-label">En Cadena Real</div><div class="kpi-val" id="a-onchain">—</div></div>
-          <div class="kpi purple"> <div class="kpi-icon">🔐</div><div class="kpi-label">Solo Huellas Digitales</div><div class="kpi-val" id="a-local">—</div></div>
+          <div class="kpi cyan">   <div class="kpi-icon">📋</div><div class="kpi-label">Total de registros</div><div class="kpi-val" id="a-blocks">—</div></div>
+          <div class="kpi green">  <div class="kpi-icon">✅</div><div class="kpi-label">Votos confirmados</div><div class="kpi-val" id="a-onchain">—</div></div>
+          <div class="kpi purple"> <div class="kpi-icon">🔐</div><div class="kpi-label">Registros locales</div><div class="kpi-val" id="a-local">—</div></div>
           <div class="kpi orange"> <div class="kpi-icon">📄</div><div class="kpi-label">Páginas</div><div class="kpi-val" id="a-pages">—</div></div>
         </div>
         <div class="chain-panel">
-          <div class="chain-panel-title"> Registro de actividad </div>
-          <div id="auditLog"><div class="empty"><div class="icon">⛓️</div><p>Aun no hay actividad — primero realiza un votó</p></div></div>
+          <div class="chain-panel-title"> Historial de votaciones </div>
+          <div id="auditLog"><div class="empty"><div class="icon">⛓️</div><p>Aún no hay votos registrados — espera a que alguien vote</p></div></div>
         </div>
         <div class="card">
-          <div class="card-title">Verificar transacción</div>
+          <div class="card-title">Verificar un registro</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <input type="text" id="verifyHash" placeholder="Pega el transaction hash aquí..." style="flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;font-family:'JetBrains Mono',monospace" />
-            <button class="btn btn-chain" onclick="verifyTx()">🔍 Verificar</button>
+            <input type="text" id="verifyHash" placeholder="Pega aquí el código de verificación..." style="flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;font-family:'JetBrains Mono',monospace" />
+            <button class="btn btn-chain" onclick="verifyTx()">🔍 Verificar registro</button>
           </div>
           <div id="verifyResult" style="margin-top:12px"></div>
         </div>
@@ -673,8 +673,8 @@
       <!-- ACTIVIDAD ──────────────────────────────────────────
            FIX: moved inside <main> where it belongs           -->
       <div class="page" id="page-activity">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Log de Actividad</div><button class="btn btn-ghost btn-sm" onclick="loadActivity()" title="Refresh">↺ Refresh</button></div>
-        <div class="page-sub">Registro de acciones del sistema</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Historial de Actividad</div><button class="btn btn-ghost btn-sm" onclick="loadActivity()" title="Refresh">↺ Refresh</button></div>
+        <div class="page-sub">Todo lo que ha pasado en la plataforma</div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Acción</th><th>Usuario</th><th>Detalle</th><th>Fecha</th></tr></thead>
@@ -694,11 +694,11 @@
     <p style="color:var(--muted);font-size:13px;margin-bottom:20px" id="voteModalDesc"></p>
     <div id="voteOptions" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px"></div>
     <div id="voteChainInfo" style="font-size:12px;color:var(--chain);padding:10px;background:#030d1f;border:1px solid #0e3355;border-radius:8px;margin-bottom:16px">
-      ⛓️ Este voto será enviado como transacción al smart contract
+      🔒 Tu voto quedará registrado de forma segura
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('voteModal')">Cancelar</button>
-      <button class="btn btn-primary" id="submitVoteBtn" onclick="submitVote()">⛓️ Firmar y Votar</button>
+      <button class="btn btn-primary" id="submitVoteBtn" onclick="submitVote()">✅ Confirmar mi voto</button>
     </div>
   </div>
 </div>
@@ -706,7 +706,7 @@
 <!-- MODAL: Nuevo / Editar Usuario ───────────────────────── -->
 <div class="modal-overlay" id="userModal">
   <div class="modal">
-    <h2 id="userModalTitle">Nuevo Usuario</h2>
+    <h2 id="userModalTitle">Nuevo integrante</h2>
 
     <!-- Avatar upload -->
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
@@ -848,7 +848,7 @@ async function checkBlockchainStatus() {
     }
   } catch {
     dot.className   = 'chain-dot err';
-    label.textContent = 'Backend desconectado';
+    label.textContent = '⚠️ Sin conexión al servidor';
   }
 }
 
@@ -981,7 +981,7 @@ function renderVotes() {
     <div class="vote-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
         <span class="badge badge-${v.status}">${v.status === 'active' ? '● Activa' : v.status === 'paused' ? '⏸ Pausada' : '✓ Cerrada'}</span>
-        ${v.blockchainEnabled ? `<span class="badge badge-chain">⛓️ ${v.chainVoteId ? 'ID #' + v.chainVoteId : 'pendiente'}</span>` : ''}
+        ${v.blockchainEnabled ? `<span class="badge badge-chain">✅ ${v.chainVoteId ? 'Verificado #' + v.chainVoteId : 'pendiente'}</span>` : ''}
       </div>
       <div class="vote-card-title">${v.title}</div>
       <div class="vote-card-desc">${v.description || ''}</div>
@@ -1009,8 +1009,8 @@ function openVoteModal(voteId) {
   document.getElementById('voteModalTitle').textContent = v.title;
   document.getElementById('voteModalDesc').textContent  = v.description || '';
   document.getElementById('voteChainInfo').innerHTML = v.blockchainEnabled && v.chainVoteId
-    ? `⛓️ Votación <strong>#${v.chainVoteId}</strong> en el smart contract · tu voto será una transacción real`
-    : '⚠️ Modo solo-memoria (blockchain no disponible o no configurado)';
+    ? `🔒 Votación <strong>#${v.chainVoteId}</strong> registrada de forma segura`
+    : '⚠️ Modo básico — el voto se guardará pero sin verificación adicional';
   document.getElementById('voteOptions').innerHTML = (v.options || []).map(o => `
     <div onclick="selectOption('${o.id}',this)"
       style="background:var(--panel2);border:2px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .2s;font-size:14px;"
@@ -1029,7 +1029,7 @@ function selectOption(optId, el) {
 async function submitVote() {
   if (!selectedOptionId) { toast('Selecciona una opción primero', 'err'); return; }
   const btn = document.getElementById('submitVoteBtn');
-  btn.textContent = '⏳ Firmando transacción...'; btn.disabled = true;
+  btn.textContent = '⏳ Registrando tu voto...'; btn.disabled = true;
   try {
     const res  = await fetch(apiUrl(`voting/${currentVoteId}/cast`), {
       method: 'POST', headers: authH(), body: JSON.stringify({ optionId: selectedOptionId })
@@ -1038,9 +1038,9 @@ async function submitVote() {
     if (!res.ok) { toast(data.error || 'Error al votar', 'err'); return; }
     const short = (data.transactionHash || '').slice(0, 18) + '...';
     if (data.onChain) {
-      toast(`✅ Voto en blockchain · Bloque #${data.ethBlockNumber} · ${short}`, 'ok');
+      toast(`✅ ¡Voto registrado correctamente!`, 'ok');
     } else {
-      toast(`⚠️ Voto guardado (blockchain no disponible) · Hash: ${short}`, 'info');
+      toast(`⚠️ Voto guardado, pero sin verificación adicional`, 'info');
     }
     closeModal('voteModal');
     await loadVotes();
@@ -1050,7 +1050,7 @@ async function submitVote() {
 }
 
 async function closeVote(voteId) {
-  if (!confirm('¿Cerrar esta votación? También se cerrará en el smart contract.')) return;
+  if (!confirm('¿Cerrar esta votación? Los participantes ya no podrán votar.')) return;
   try {
     const res = await fetch(apiUrl(`voting/${voteId}/status`), {
       method: 'PATCH', headers: authH(), body: JSON.stringify({ status: 'closed' })
@@ -1079,13 +1079,13 @@ async function showResults(voteId) {
         <div style="font-size:11px;color:var(--muted);margin-top:3px">${r.votes} votos</div>
       </div>`).join('');
     const chainHTML = data.chainResults
-      ? `<div class="verify-strip">⛓️ Datos verificados desde el smart contract · Chain Vote ID: <strong>#${data.chainVoteId}</strong></div>`
+      ? `<div class="verify-strip">✅ Resultados verificados y seguros · ID de votación: <strong>#${data.chainVoteId}</strong></div>`
       : '';
     document.getElementById('resModalContent').innerHTML = `
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
         <span style="font-size:13px;color:var(--muted)">Total: <strong style="color:#fff">${data.totalVotes}</strong></span>
         <span class="badge badge-${data.status}">${data.status}</span>
-        ${data.blockchainEnabled ? `<span class="badge badge-chain">⛓️ ${data.onChainVotes} en cadena</span>` : ''}
+        ${data.blockchainEnabled ? `<span class="badge badge-chain">✅ ${data.onChainVotes} verificados</span>` : ''}
       </div>
       ${barsHTML}
       ${data.winner && data.totalVotes > 0 ? `<div style="margin-top:16px;padding:12px;background:#052e16;border:1px solid #166534;border-radius:10px;font-size:13px;color:#4ade80">🏆 Opción ganadora: <strong>${data.winner.text}</strong> con ${data.winner.percentage}%</div>` : ''}
@@ -1128,8 +1128,8 @@ async function createVote() {
     const data = await res.json();
     if (!res.ok) { toast(data.errors?.[0]?.msg || data.error || 'Error', 'err'); return; }
     const msg = data.vote.chainVoteId
-      ? `✅ Votación creada · Chain ID #${data.vote.chainVoteId}`
-      : '⚠️ Votación creada (blockchain no disponible)';
+      ? `✅ ¡Votación creada exitosamente!`
+      : '⚠️ Votación creada, sin verificación adicional';
     toast(msg, data.vote.chainVoteId ? 'ok' : 'info');
     await loadVotes();
     navigate('voting');
@@ -1158,7 +1158,7 @@ async function loadDashboard() {
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
           <div>
             <div style="font-size:13px;font-weight:600;color:var(--text)">${v.title}</div>
-            <div style="font-size:11px;color:var(--muted)">${v.totalVotes} votos · ${v.participantCount} participantes${v.chainVoteId ? ' · ⛓️ #' + v.chainVoteId : ''}</div>
+            <div style="font-size:11px;color:var(--muted)">${v.totalVotes} votos · ${v.participantCount} participantes${v.chainVoteId ? ' · ✅ ID #' + v.chainVoteId : ''}</div>
           </div>
           <span class="badge badge-${v.status}">${v.status === 'active' ? 'Activa' : 'Cerrada'}</span>
         </div>`).join('')
@@ -1217,7 +1217,7 @@ async function loadStats() {
         ${list.map(v => `<tr>
           <td style="font-weight:600;color:var(--text)">${v.title}</td>
           <td style="color:#60a5fa;font-weight:700">${v.totalVotes}</td>
-          <td>${v.chainVoteId ? `<span class="badge badge-chain">⛓️ #${v.chainVoteId}</span>` : '<span style="color:var(--muted);font-size:11px">—</span>'}</td>
+          <td>${v.chainVoteId ? `<span class="badge badge-chain">✅ #${v.chainVoteId}</span>` : '<span style="color:var(--muted);font-size:11px">—</span>'}</td>
           <td><span class="badge badge-${v.status}">${v.status === 'active' ? 'Activa' : 'Cerrada'}</span></td>
           <td style="color:var(--muted)">${fdate(v.endDate)}</td>
           <td><button class="btn btn-ghost btn-sm" onclick="showResults('${v.id}')">Ver</button></td>
@@ -1239,15 +1239,15 @@ async function loadVoteDetail() {
 async function loadVoteDetailFromChain() {
   const voteId = document.getElementById('statsVoteSelect').value;
   if (!voteId) { toast('Selecciona una votación primero', 'err'); return; }
-  toast('⛓️ Leyendo datos del smart contract...', 'info');
+  toast('⏳ Actualizando resultados...', 'info');
   try {
     const res  = await fetch(apiUrl(`results/${voteId}`), { headers: authH() });
     const data = await res.json();
     if (data.chainResults) {
-      toast('✅ Datos leídos directamente del blockchain', 'ok');
+      toast('✅ Resultados actualizados', 'ok');
       renderVoteDetailChart(data, true);
     } else {
-      toast('⚠️ Chain ID no disponible — mostrando datos del backend', 'info');
+      toast('⚠️ Mostrando datos guardados', 'info');
       renderVoteDetailChart(data, false);
     }
   } catch { toast('Error', 'err'); }
@@ -1522,11 +1522,11 @@ async function loadAudit() {
           <div class="tx-hash">${b.transactionHash}</div>
           <span class="tx-time">${new Date(b.timestamp).toLocaleTimeString('es-MX')}</span>
           ${b.onChain
-            ? `<span class="tx-on">⛓️ On-chain #${b.ethBlockNumber}</span>`
+            ? `<span class="tx-on">✅ Confirmado #${b.ethBlockNumber}</span>`
             : `<span class="tx-off">📝 Huella Digital</span>`}
         </div>`).join('')
       : '<div class="empty"><div class="icon">⛓️</div><p>No hay bloques aún — emite votos primero</p></div>';
-  } catch { toast('Error cargando auditoría', 'err'); }
+  } catch { toast('Error cargando el historial', 'err'); }
 }
 
 async function verifyTx() {
@@ -1540,7 +1540,7 @@ async function verifyTx() {
       el.innerHTML = `
         <div class="verify-strip">
           ✅ Transacción verificada · Bloque #${data.block.blockNumber} ·
-          ${data.block.onChain ? `⛓️ Confirmada en cadena (bloque Ethereum #${data.block.ethBlockNumber})` : '📝 Huella digital'}
+          ${data.block.onChain ? `✅ Confirmado en el registro seguro (#${data.block.ethBlockNumber})` : '📝 Huella digital'}
           · Timestamp: ${new Date(data.block.timestamp).toLocaleString('es-MX')}
         </div>`;
     } else {
@@ -1714,7 +1714,7 @@ async function doForgotPassword() {
 
     // Siempre mostramos la pantalla de código (no revelar si existe el email)
     document.getElementById('verifyCodeSubtitle').textContent =
-      'Revisа tu correo de respaldo · Si el email está registrado, recibirás el código';
+      'Revisa tu correo de respaldo · Si el email está registrado recibirás el código';
     document.getElementById('forgotScreen').style.display  = 'none';
     document.getElementById('verifyCodeScreen').style.display = 'flex';
     document.getElementById('resetCode').value = '';
