@@ -344,10 +344,81 @@
         ¿No tienes cuenta? 
         <a href="#" onclick="openModal('userRegistroModal')" style="color: var(--accent); text-decoration: none; font-weight: 600;">Regístrate aquí</a>
       </p>
+      <p style="font-size: 13px; color: var(--muted); margin-top: 8px;">
+        <a href="#" onclick="showForgotScreen()" style="color: var(--muted); text-decoration: none;">¿Olvidaste tu contraseña?</a>
+      </p>
     </div>
     <div class="login-hint">
       Admin: admin@votechain.com / Admin123!<br>
       Empleado: maria@votechain.com / Employee123!
+    </div>
+  </div>
+</div>
+
+<!-- ════ PANTALLA: Olvidé mi contraseña ════════════════════ -->
+<div id="forgotScreen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 60% at 50% 20%, #0f2a5a 0%, #060b18 70%)">
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="brand-icon">🔑</div>
+      <h1>Recuperar contraseña</h1>
+      <p>Ingresa el email con el que te registraste</p>
+    </div>
+    <div class="login-error" id="forgotError"></div>
+    <div class="fg">
+      <label>Email de tu cuenta</label>
+      <input type="email" id="forgotEmail" placeholder="tu@email.com" />
+    </div>
+    <button class="btn-login" onclick="doForgotPassword()">Enviar código de recuperación</button>
+    <div style="text-align:center;margin-top:16px">
+      <a href="#" onclick="showLoginScreen()" style="font-size:13px;color:var(--muted);text-decoration:none">← Volver al inicio de sesión</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PANTALLA: Verificar código ════════════════════════ -->
+<div id="verifyCodeScreen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 60% at 50% 20%, #0f2a5a 0%, #060b18 70%)">
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="brand-icon">📧</div>
+      <h1>Ingresa el código</h1>
+      <p id="verifyCodeSubtitle">Te enviamos un código a tu correo de respaldo</p>
+    </div>
+    <div class="login-error" id="verifyError"></div>
+    <div style="background:rgba(47,128,237,.08);border:1px solid rgba(47,128,237,.25);color:#60a5fa;padding:12px 14px;border-radius:8px;font-size:12px;margin-bottom:16px;text-align:center;line-height:1.6">
+      📧 Revisa tu correo de respaldo · El código expira en <strong>15 minutos</strong>
+    </div>
+    <div class="fg">
+      <label>Código de 6 dígitos</label>
+      <input type="text" id="resetCode" placeholder="000000" maxlength="6" style="text-align:center;font-size:28px;letter-spacing:8px;font-family:monospace" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+    </div>
+    <button class="btn-login" onclick="doVerifyCode()">Verificar código</button>
+    <div style="text-align:center;margin-top:16px;display:flex;justify-content:center;gap:20px">
+      <a href="#" onclick="doForgotPassword()" style="font-size:12px;color:var(--muted);text-decoration:none">↺ Reenviar código</a>
+      <a href="#" onclick="showLoginScreen()" style="font-size:12px;color:var(--muted);text-decoration:none">← Cancelar</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PANTALLA: Nueva contraseña ════════════════════════ -->
+<div id="newPasswordScreen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 60% at 50% 20%, #0f2a5a 0%, #060b18 70%)">
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="brand-icon">🔒</div>
+      <h1>Nueva contraseña</h1>
+      <p>Elige una contraseña segura para tu cuenta</p>
+    </div>
+    <div class="login-error" id="newPassError"></div>
+    <div class="fg">
+      <label>Nueva contraseña</label>
+      <input type="password" id="newPassword1" placeholder="Mínimo 6 caracteres" />
+    </div>
+    <div class="fg">
+      <label>Confirmar contraseña</label>
+      <input type="password" id="newPassword2" placeholder="Repite la contraseña" />
+    </div>
+    <button class="btn-login" onclick="doResetPassword()">Cambiar contraseña</button>
+    <div style="text-align:center;margin-top:16px">
+      <a href="#" onclick="showLoginScreen()" style="font-size:13px;color:var(--muted);text-decoration:none">← Cancelar</a>
     </div>
   </div>
 </div>
@@ -378,6 +449,11 @@
     <div class="fg">
       <label>Contraseña *</label>
       <input type="password" id="uPassReg" placeholder="Min. 6 caracteres" />
+    </div>
+    <div class="fg">
+      <label>Correo de respaldo * <span style="color:var(--accent);font-size:10px">(para recuperar contraseña)</span></label>
+      <input type="email" id="uBackupEmail" placeholder="personal@gmail.com" />
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">📧 Se usará para enviarte el código si olvidas tu contraseña</div>
     </div>
     <div class="modal-actions">
       <button onclick="closeModal('userRegistroModal')" style="background:none; border:none; color:var(--muted); cursor:pointer;">Cancelar</button>
@@ -428,7 +504,7 @@
 
       <!-- DASHBOARD ─────────────────────────────────────── -->
       <div class="page active" id="page-dashboard">
-        <div class="page-title">Dashboard</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Dashboard</div><button class="btn btn-ghost btn-sm" onclick="loadDashboard();loadVotes()" title="Actualizar">↺ Refresh</button></div>
         <div class="page-sub">Estado general del sistema en tiempo real</div>
         <div class="kpi-grid">
           <div class="kpi blue">  <div class="kpi-icon">🗳️</div><div class="kpi-label">Votaciones</div><div class="kpi-val" id="d-total">—</div></div>
@@ -497,7 +573,7 @@
 
       <!-- ESTADÍSTICAS ────────────────────────────────────── -->
       <div class="page" id="page-stats">
-        <div class="page-title">Estadísticas</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Estadísticas</div><button class="btn btn-ghost btn-sm" onclick="loadStats()" title="Actualizar">↺ Refresh</button></div>
         <div class="page-sub">Datos en tiempo real desde el backend y el smart contract</div>
         <div class="card" style="margin-bottom:16px">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -527,7 +603,7 @@
 
       <!-- USUARIOS ────────────────────────────────────────── -->
       <div class="page" id="page-users">
-        <div class="page-title">Gestión de Usuarios</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Gestión de Usuarios</div><button class="btn btn-ghost btn-sm" onclick="loadUsers()" title="Actualizar">↺ Refresh</button></div>
         <div class="page-sub">Usuarios registrados en el sistema</div>
         <div class="toolbar">
           <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="userSearch" placeholder="Buscar..." oninput="renderUsers()" /></div>
@@ -549,7 +625,7 @@
 
       <!-- PERFIL / CAMBIAR CONTRASEÑA ──────────────────────── -->
       <div class="page" id="page-profile">
-        <div class="page-title">Mi Perfil</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Mi Perfil</div><button class="btn btn-ghost btn-sm" onclick="loadProfile()" title="Actualizar">↺ Refresh</button></div>
         <div class="page-sub">Gestiona tu cuenta y seguridad</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
           <div class="card">
@@ -572,7 +648,7 @@
 
       <!-- AUDITORÍA ───────────────────────────────────────── -->
       <div class="page" id="page-audit">
-        <div class="page-title">Auditoría Blockchain</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Auditoría Blockchain</div><button class="btn btn-ghost btn-sm" onclick="loadAudit()" title="Actualizar">↺ Refresh</button></div>
         <div class="page-sub">Registro inmutable de todos los votos — verificable en el smart contract</div>
         <div class="kpi-grid">
           <div class="kpi cyan">   <div class="kpi-icon">⛓️</div><div class="kpi-label">Total Bloques</div><div class="kpi-val" id="a-blocks">—</div></div>
@@ -597,7 +673,7 @@
       <!-- ACTIVIDAD ──────────────────────────────────────────
            FIX: moved inside <main> where it belongs           -->
       <div class="page" id="page-activity">
-        <div class="page-title">Log de Actividad</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Log de Actividad</div><button class="btn btn-ghost btn-sm" onclick="loadActivity()" title="Actualizar">↺ Refresh</button></div>
         <div class="page-sub">Registro de acciones del sistema</div>
         <div class="table-wrap">
           <table>
@@ -704,6 +780,9 @@ let TOKEN = '', REFRESH_TOKEN = '', ME = null, allVotes = [], allUsers = [];
 let selectedOptionId = null, currentVoteId = null;
 let barChart = null, doughnutChart = null, detailChart = null;
 let tokenRefreshTimer = null;
+let resetUserId    = null;
+let resetToken     = null;
+let forgotEmailVal = '';
 
 // ── Persistencia de sesión ────────────────────────────────
 function saveSession(accessToken, refreshToken) {
@@ -1594,6 +1673,149 @@ async function uploadMyAvatar(input) {
   reader.readAsDataURL(file);
 }
 
+// ══════════════════════════════════════════════════════════
+// RECUPERACIÓN DE CONTRASEÑA
+// ══════════════════════════════════════════════════════════
+
+function showForgotScreen() {
+  document.getElementById('loginScreen').style.display    = 'none';
+  document.getElementById('forgotScreen').style.display  = 'flex';
+  document.getElementById('verifyCodeScreen').style.display  = 'none';
+  document.getElementById('newPasswordScreen').style.display = 'none';
+  document.getElementById('forgotError').style.display = 'none';
+  document.getElementById('forgotEmail').value = '';
+}
+
+function showLoginScreen() {
+  document.getElementById('loginScreen').style.display   = 'flex';
+  document.getElementById('forgotScreen').style.display  = 'none';
+  document.getElementById('verifyCodeScreen').style.display  = 'none';
+  document.getElementById('newPasswordScreen').style.display = 'none';
+}
+
+async function doForgotPassword() {
+  const email   = document.getElementById('forgotEmail').value.trim();
+  const errEl   = document.getElementById('forgotError');
+  const btn     = document.querySelector('#forgotScreen .btn-login');
+  errEl.style.display = 'none';
+
+  if (!email) { errEl.textContent = 'Ingresa tu email'; errEl.style.display = 'block'; return; }
+
+  forgotEmailVal = email;
+  btn.textContent = '⏳ Enviando...';
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch(apiUrl('auth/forgot-password'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    // Siempre mostramos la pantalla de código (no revelar si existe el email)
+    document.getElementById('verifyCodeSubtitle').textContent =
+      'Revisа tu correo de respaldo · Si el email está registrado, recibirás el código';
+    document.getElementById('forgotScreen').style.display  = 'none';
+    document.getElementById('verifyCodeScreen').style.display = 'flex';
+    document.getElementById('resetCode').value = '';
+    document.getElementById('verifyError').style.display = 'none';
+
+  } catch {
+    errEl.textContent = 'Error de conexión. Verifica que el servidor esté activo.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.textContent = 'Enviar código de recuperación';
+    btn.disabled = false;
+  }
+}
+
+async function doVerifyCode() {
+  const code  = document.getElementById('resetCode').value.trim();
+  const errEl = document.getElementById('verifyError');
+  const btn   = document.querySelector('#verifyCodeScreen .btn-login');
+  errEl.style.display = 'none';
+
+  if (code.length !== 6) { errEl.textContent = 'El código debe tener 6 dígitos'; errEl.style.display = 'block'; return; }
+
+  btn.textContent = '⏳ Verificando...';
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch(apiUrl('auth/verify-reset-code'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: forgotEmailVal, code })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Código inválido o expirado';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    resetUserId = data.userId;
+    resetToken  = data.resetToken;
+
+    document.getElementById('verifyCodeScreen').style.display  = 'none';
+    document.getElementById('newPasswordScreen').style.display = 'flex';
+    document.getElementById('newPassword1').value = '';
+    document.getElementById('newPassword2').value = '';
+    document.getElementById('newPassError').style.display = 'none';
+
+  } catch {
+    errEl.textContent = 'Error de conexión.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.textContent = 'Verificar código';
+    btn.disabled = false;
+  }
+}
+
+async function doResetPassword() {
+  const p1    = document.getElementById('newPassword1').value;
+  const p2    = document.getElementById('newPassword2').value;
+  const errEl = document.getElementById('newPassError');
+  const btn   = document.querySelector('#newPasswordScreen .btn-login');
+  errEl.style.display = 'none';
+
+  if (!p1 || p1.length < 6) { errEl.textContent = 'Mínimo 6 caracteres'; errEl.style.display = 'block'; return; }
+  if (p1 !== p2)             { errEl.textContent = 'Las contraseñas no coinciden'; errEl.style.display = 'block'; return; }
+  if (!resetUserId || !resetToken) { errEl.textContent = 'Sesión expirada. Solicita un nuevo código.'; errEl.style.display = 'block'; return; }
+
+  btn.textContent = '⏳ Guardando...';
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch(apiUrl('auth/reset-password'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: resetUserId, resetToken, newPassword: p1 })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Error al cambiar contraseña';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    toast('✅ Contraseña cambiada exitosamente. Ya puedes iniciar sesión.', 'ok');
+    resetUserId = null;
+    resetToken  = null;
+    forgotEmailVal = '';
+
+    // Volver al login con el email precargado
+    document.getElementById('loginEmail').value = forgotEmailVal || '';
+    showLoginScreen();
+
+  } catch {
+    errEl.textContent = 'Error de conexión.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.textContent = 'Cambiar contraseña';
+    btn.disabled = false;
+  }
+}
+
 // ── Cerrar modales al clic fuera ──────────────────────────
 ['voteModal', 'userModal', 'resultsModal', 'deleteUserModal', 'userRegistroModal'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(id); });
@@ -1640,11 +1862,15 @@ async function ejecutarAutorregistro() {
     toast("⏳ Procesando registro...", "info");
 
     try {
+        const backupEmailVal = document.getElementById('uBackupEmail')?.value.trim() || '';
+        if (!backupEmailVal) return toast("El correo de respaldo es requerido", "err");
+
         const payload = {
             name: `${nombre} ${apellido}`,
             email: email,
             password: pass,
             curp: curp,
+            backupEmail: backupEmailVal,
             role: 'employee'
         };
 
