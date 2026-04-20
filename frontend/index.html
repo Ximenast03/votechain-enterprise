@@ -339,9 +339,49 @@
       <input type="password" id="loginPass" placeholder="••••••••" value="Admin123!" autocomplete="current-password" />
     </div>
     <button class="btn-login" onclick="doLogin()">Entrar al sistema</button>
+    <div style="text-align: center; margin-top: 15px;">
+      <p style="font-size: 13px; color: var(--muted);">
+        ¿No tienes cuenta? 
+        <a href="#" onclick="openModal('userRegistroModal')" style="color: var(--accent); text-decoration: none; font-weight: 600;">Regístrate aquí</a>
+      </p>
+    </div>
     <div class="login-hint">
       Admin: admin@votechain.com / Admin123!<br>
       Empleado: maria@votechain.com / Employee123!
+    </div>
+  </div>
+</div>
+
+<!-- ════ Modal Registro de Votante ════════════════════════════════════════════ -->
+<div class="modal-overlay" id="userRegistroModal">
+  <div class="modal">
+    <h2 style="color:var(--accent); margin-bottom:5px;">Registro de Votante</h2>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:20px;">Identifícate con tu CURP para participar</p>
+    <div class="fg">
+      <label>CURP *</label>
+      <input type="text" id="uCurp" maxlength="18" style="text-transform:uppercase; font-family:monospace;" placeholder="18 caracteres" />
+    </div>
+    <div class="form-row">
+      <div class="fg">
+        <label>Primer Nombre *</label>
+        <input type="text" id="uNombreReg" oninput="generarCorreoPublico()" placeholder="Ej. Juan" />
+      </div>
+      <div class="fg">
+        <label>Primer Apellido *</label>
+        <input type="text" id="uApellidoReg" placeholder="Ej. Perez" />
+      </div>
+    </div>
+    <div class="fg">
+      <label>Email Generado</label>
+      <input type="email" id="uEmailReg" readonly style="background:var(--bg); color:var(--accent); border-color:var(--accent);" />
+    </div>
+    <div class="fg">
+      <label>Contraseña *</label>
+      <input type="password" id="uPassReg" placeholder="Min. 6 caracteres" />
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeModal('userRegistroModal')" style="background:none; border:none; color:var(--muted); cursor:pointer;">Cancelar</button>
+      <button class="btn-login" onclick="ejecutarAutorregistro()" style="width:auto; padding:10px 25px;">Crear cuenta</button>
     </div>
   </div>
 </div>
@@ -587,13 +627,28 @@
   </div>
 </div>
 
-<!-- MODAL: Nuevo Usuario ─────────────────────────────────── -->
+<!-- MODAL: Nuevo / Editar Usuario ───────────────────────── -->
 <div class="modal-overlay" id="userModal">
   <div class="modal">
-    <h2>Nuevo Usuario</h2>
+    <h2 id="userModalTitle">Nuevo Usuario</h2>
+
+    <!-- Avatar upload -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+      <div id="uAvatarPreview" onclick="document.getElementById('uAvatarInput').click()"
+        style="width:72px;height:72px;border-radius:50%;background:var(--panel2);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;flex-shrink:0;cursor:pointer">
+        👤
+      </div>
+      <div>
+        <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:4px">Foto de perfil</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">JPG, PNG o GIF · Máx. 500KB</div>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('uAvatarInput').click()" type="button">📷 Subir foto</button>
+        <input type="file" id="uAvatarInput" accept="image/*" style="display:none" onchange="previewAvatar(this)" />
+      </div>
+    </div>
+
     <div class="fg"><label>Nombre completo *</label><input type="text" id="uName" placeholder="Juan García" /></div>
     <div class="fg"><label>Email corporativo *</label><input type="email" id="uEmail" placeholder="juan@empresa.com" /></div>
-    <div class="fg"><label>Contraseña *</label><input type="password" id="uPass" placeholder="Mínimo 6 caracteres" /></div>
+    <div class="fg" id="uPassGroup"><label>Contraseña *</label><input type="password" id="uPass" placeholder="Mínimo 6 caracteres" /></div>
     <div class="form-row">
       <div class="fg"><label>Departamento</label>
         <select id="uDept"><option>Tecnología</option><option>RRHH</option><option>Operaciones</option><option>Finanzas</option><option>Marketing</option><option>Legal</option></select>
@@ -601,7 +656,19 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('userModal')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveUser()">Guardar</button>
+      <button class="btn btn-primary" id="userModalSaveBtn" onclick="saveUser()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirmar Eliminar Usuario ────────────────────── -->
+<div class="modal-overlay" id="deleteUserModal">
+  <div class="modal" style="max-width:400px">
+    <h2 style="color:var(--red)">⚠️ Eliminar usuario</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">¿Estás seguro de que deseas eliminar a <strong id="deleteUserName" style="color:var(--text)"></strong>? Esta acción no se puede deshacer.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('deleteUserModal')">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmDeleteUser()">Sí, eliminar</button>
     </div>
   </div>
 </div>
@@ -1168,30 +1235,91 @@ async function loadUsers() {
 function renderUsers() {
   const q  = (document.getElementById('userSearch')?.value || '').toLowerCase();
   const rf = document.getElementById('userRoleFilter')?.value || '';
+  const isAdmin = ME?.role === 'admin';
   const list = allUsers.filter(u =>
     (!q  || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) &&
     (!rf || u.role === rf)
   );
+  const roleLabels = { admin:'🛡️ Admin', manager:'📋 Manager', employee:'👤 Empleado', auditor:'🔍 Auditor' };
   document.getElementById('usersTable').innerHTML = list.length
     ? list.map(u => `<tr>
         <td><div class="user-cell">
-          <div class="avatar" style="background:${colorFor(u.name)}22;color:${colorFor(u.name)}">${initials(u.name)}</div>
+          ${u.avatar
+            ? `<img src="${u.avatar}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)" />`
+            : `<div class="avatar" style="background:${colorFor(u.name)}22;color:${colorFor(u.name)}">${initials(u.name)}</div>`}
           <div><div class="user-name">${u.name}</div><div class="user-email">${u.email}</div></div>
         </div></td>
         <td style="color:var(--muted)">${u.department || '—'}</td>
-        <td><span class="badge badge-${u.role}">${u.role === 'admin' ? '🛡️ Admin' : '👤 Empleado'}</span></td>
+        <td>
+          ${isAdmin
+            ? `<select onchange="changeRole('${u.id}',this.value)" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;outline:none">
+                ${['admin','manager','employee','auditor'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}
+               </select>`
+            : `<span class="badge badge-${u.role}">${roleLabels[u.role] || u.role}</span>`}
+        </td>
         <td style="color:var(--muted)">${(u.createdAt || '').split('T')[0]}</td>
-        ${can('roles:assign') ? `<td>
-          <select onchange="changeRole('${u.id}',this.value)" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;outline:none">
-            ${['admin','manager','employee','auditor'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}
-          </select>
-        </td>` : ''}
+        ${isAdmin ? `<td style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 16px">
+          <button class="btn btn-ghost btn-sm" onclick="openEditUserModal('${u.id}')">✏️ Editar</button>
+          ${u.id !== ME?.id ? `<button class="btn btn-danger btn-sm" onclick="openDeleteUserModal('${u.id}','${u.name.replace(/'/g,'')}')">🗑️</button>` : ''}
+        </td>` : '<td></td>'}
       </tr>`).join('')
-    : '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)">No hay usuarios</td></tr>';
+    : '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No hay usuarios</td></tr>';
+}
+
+// ── Estado del modal de usuario ───────────────────────────
+let editingUserId = null;
+let pendingAvatar = null;
+let pendingDeleteId = null;
+
+function previewAvatar(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 600000) { toast('Imagen demasiado grande (máx. 500KB)', 'err'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingAvatar = e.target.result;
+    const prev = document.getElementById('uAvatarPreview');
+    prev.innerHTML = `<img src="${pendingAvatar}" style="width:100%;height:100%;object-fit:cover" />`;
+  };
+  reader.readAsDataURL(file);
 }
 
 function openUserModal() {
+  editingUserId = null;
+  pendingAvatar = null;
+  document.getElementById('userModalTitle').textContent = 'Nuevo Usuario';
+  document.getElementById('userModalSaveBtn').textContent = 'Crear usuario';
   ['uName', 'uEmail', 'uPass'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('uDept').value = 'Tecnología';
+  document.getElementById('uAvatarPreview').innerHTML = '👤';
+  document.getElementById('uPassGroup').style.display = '';
+  document.getElementById('uAvatarInput').value = '';
+  openModal('userModal');
+}
+
+function openEditUserModal(userId) {
+  const u = allUsers.find(x => x.id === userId);
+  if (!u) return;
+  editingUserId = userId;
+  pendingAvatar = null;
+  document.getElementById('userModalTitle').textContent = 'Editar Usuario';
+  document.getElementById('userModalSaveBtn').textContent = 'Guardar cambios';
+  document.getElementById('uName').value  = u.name;
+  document.getElementById('uEmail').value = u.email;
+  document.getElementById('uPass').value  = '';
+  // Ocultar campo contraseña al editar (se cambia desde Mi Perfil)
+  document.getElementById('uPassGroup').style.display = 'none';
+  // Seleccionar departamento
+  const deptSel = document.getElementById('uDept');
+  for (let opt of deptSel.options) { if (opt.value === u.department) { deptSel.value = u.department; break; } }
+  // Mostrar avatar actual
+  const prev = document.getElementById('uAvatarPreview');
+  if (u.avatar) {
+    prev.innerHTML = `<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover" />`;
+  } else {
+    prev.innerHTML = '👤';
+  }
+  document.getElementById('uAvatarInput').value = '';
   openModal('userModal');
 }
 
@@ -1200,15 +1328,87 @@ async function saveUser() {
   const email = document.getElementById('uEmail').value.trim();
   const pass  = document.getElementById('uPass').value.trim();
   const dept  = document.getElementById('uDept').value;
-  if (!name || !email || !pass) { toast('Todos los campos son requeridos', 'err'); return; }
+
+  if (!name || !email) { toast('Nombre y email son requeridos', 'err'); return; }
+
   try {
-    const res  = await fetch(apiUrl('auth/register'), { method: 'POST', headers: authH(), body: JSON.stringify({ name, email, password: pass, department: dept }) });
-    const data = await res.json();
-    if (!res.ok) { toast(data.error || data.errors?.[0]?.msg || 'Error', 'err'); return; }
-    allUsers.push({ id: Date.now(), name, email, department: dept, role: 'employee', createdAt: new Date().toISOString().split('T')[0] });
-    toast(`✅ Usuario creado: ${name}`);
-    closeModal('userModal'); renderUsers();
+    if (editingUserId) {
+      // ── EDITAR usuario existente ──────────────────────────
+      const res  = await fetch(apiUrl(`auth/users/${editingUserId}`), {
+        method: 'PATCH', headers: authH(),
+        body: JSON.stringify({ name, email, department: dept })
+      });
+      const data = await res.json();
+      if (!res.ok) { toast(data.error || 'Error al actualizar', 'err'); return; }
+
+      // Subir avatar si cambió
+      if (pendingAvatar) {
+        const resAv = await fetch(apiUrl(`auth/users/${editingUserId}/avatar`), {
+          method: 'PATCH', headers: authH(),
+          body: JSON.stringify({ avatar: pendingAvatar })
+        });
+        if (!resAv.ok) toast('⚠️ Datos guardados pero error al subir foto', 'info');
+      }
+
+      // Actualizar en memoria local
+      const idx = allUsers.findIndex(u => u.id === editingUserId);
+      if (idx !== -1) {
+        allUsers[idx].name       = name;
+        allUsers[idx].email      = email;
+        allUsers[idx].department = dept;
+        if (pendingAvatar) allUsers[idx].avatar = pendingAvatar;
+      }
+      toast(`✅ Usuario actualizado: ${name}`);
+
+    } else {
+      // ── CREAR nuevo usuario ───────────────────────────────
+      if (!pass) { toast('La contraseña es requerida', 'err'); return; }
+      const res  = await fetch(apiUrl('auth/register'), {
+        method: 'POST', headers: authH(),
+        body: JSON.stringify({ name, email, password: pass, department: dept })
+      });
+      const data = await res.json();
+      if (!res.ok) { toast(data.error || data.errors?.[0]?.msg || 'Error', 'err'); return; }
+
+      const newUser = { id: data.user?.id || Date.now(), name, email, department: dept, role: 'employee', createdAt: new Date().toISOString(), avatar: null };
+
+      // Subir avatar si se seleccionó
+      if (pendingAvatar && newUser.id) {
+        const resAv = await fetch(apiUrl(`auth/users/${newUser.id}/avatar`), {
+          method: 'PATCH', headers: authH(),
+          body: JSON.stringify({ avatar: pendingAvatar })
+        });
+        if (resAv.ok) newUser.avatar = pendingAvatar;
+      }
+      allUsers.push(newUser);
+      toast(`✅ Usuario creado: ${name}`);
+    }
+
+    closeModal('userModal');
+    renderUsers();
   } catch { toast('Error de conexión', 'err'); }
+}
+
+function openDeleteUserModal(userId, userName) {
+  pendingDeleteId = userId;
+  document.getElementById('deleteUserName').textContent = userName;
+  openModal('deleteUserModal');
+}
+
+async function confirmDeleteUser() {
+  if (!pendingDeleteId) return;
+  try {
+    const res  = await fetch(apiUrl(`auth/users/${pendingDeleteId}`), {
+      method: 'DELETE', headers: authH()
+    });
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || 'Error al eliminar', 'err'); return; }
+    allUsers = allUsers.filter(u => u.id !== pendingDeleteId);
+    toast(`✅ ${data.message}`);
+    closeModal('deleteUserModal');
+    renderUsers();
+  } catch { toast('Error de conexión', 'err'); }
+  finally { pendingDeleteId = null; }
 }
 
 function exportCSV() {
@@ -1290,12 +1490,24 @@ async function changeRole(userId, newRole) {
 // ══════════════════════════════════════════════════════════
 async function loadProfile() {
   if (!ME) return;
+  const avatarHTML = ME.avatar
+    ? `<img src="${ME.avatar}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);margin-bottom:12px" />`
+    : `<div style="width:80px;height:80px;border-radius:50%;background:${colorFor(ME.name)}22;color:${colorFor(ME.name)};display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;border:3px solid var(--border);margin-bottom:12px">${initials(ME.name)}</div>`;
   document.getElementById('profileInfo').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px">
+      ${avatarHTML}
+      <label style="cursor:pointer;font-size:11px;color:var(--accent);font-weight:600">
+        📷 Cambiar foto
+        <input type="file" accept="image/*" style="display:none" onchange="uploadMyAvatar(this)" />
+      </label>
+    </div>
+    <div style="line-height:2.2">
     <span style="color:var(--text);font-weight:600">Nombre</span> ${ME.name}<br>
     <span style="color:var(--text);font-weight:600">Email</span> ${ME.email}<br>
     <span style="color:var(--text);font-weight:600">Rol</span> <span class="badge badge-${ME.role}">${ME.role}</span><br>
     <span style="color:var(--text);font-weight:600">Departamento</span> ${ME.department || '—'}<br>
     <span style="color:var(--text);font-weight:600">Último login</span> ${ME.lastLogin ? new Date(ME.lastLogin).toLocaleString('es-MX') : 'Primera sesión'}
+    </div>
   `;
   const panel = document.getElementById('permissionsPanel');
   const perms = ME.permissions || [];
@@ -1355,19 +1567,46 @@ async function loadActivity() {
   } catch { toast('Error cargando actividad', 'err'); }
 }
 
+// ── Subir mi propia foto de perfil ───────────────────────
+async function uploadMyAvatar(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 600000) { toast('Imagen demasiado grande (máx. 500KB)', 'err'); return; }
+  toast('⏳ Subiendo foto...', 'info');
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const avatar = e.target.result;
+    try {
+      const res  = await fetch(apiUrl(`auth/users/${ME.id}/avatar`), {
+        method: 'PATCH', headers: authH(),
+        body: JSON.stringify({ avatar })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        ME.avatar = avatar;
+        toast('✅ Foto de perfil actualizada');
+        loadProfile(); // Recargar para mostrar nueva foto
+      } else {
+        toast(data.error || 'Error al subir foto', 'err');
+      }
+    } catch { toast('Error de conexión', 'err'); }
+  };
+  reader.readAsDataURL(file);
+}
+
 // ── Cerrar modales al clic fuera ──────────────────────────
-['voteModal', 'userModal', 'resultsModal'].forEach(id => {
+['voteModal', 'userModal', 'resultsModal', 'deleteUserModal', 'userRegistroModal'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(id); });
 });
 
 
 
-//Script de nuevo usario
+
+//Script de nuevo usuario
 function generarCorreoPublico() {
-    const nombre = document.getElementById('uName').value.trim().toLowerCase();
-    const emailInput = document.getElementById('uEmail');
+    const nombre = document.getElementById('uNombreReg').value.trim().toLowerCase();
+    const emailInput = document.getElementById('uEmailReg');
     if (nombre) {
-        // Limpia el nombre de acentos y espacios
         const limpio = nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
         emailInput.value = limpio + "@votechain.com";
     } else {
@@ -1375,44 +1614,65 @@ function generarCorreoPublico() {
     }
 }
 
-// Envía el registro a la base de datos (sin requerir autenticación previa)
 async function ejecutarAutorregistro() {
-    const curp = document.getElementById('uCurp').value.trim().toUpperCase();
-    const nombre = document.getElementById('uName').value.trim();
-    const apellido = document.getElementById('uApellido').value.trim();
-    const email = document.getElementById('uEmail').value;
-    const pass = document.getElementById('uPass').value;
+    const curpInput  = document.getElementById('uCurp');
+    const nameInput  = document.getElementById('uNombreReg');
+    const apeInput   = document.getElementById('uApellidoReg');
+    const emailInput = document.getElementById('uEmailReg');
+    const passInput  = document.getElementById('uPassReg');
 
-    if (curp.length !== 18) return toast("CURP inválida (deben ser 18 caracteres)", "err");
-    if (!nombre || !apellido || pass.length < 6) return toast("Completa los campos correctamente", "err");
+    if (!curpInput || !nameInput || !apeInput || !emailInput || !passInput) {
+        console.error("Error: No se encontraron todos los campos en el formulario.");
+        return;
+    }
+
+    const curp     = curpInput.value.trim().toUpperCase();
+    const nombre   = nameInput.value.trim();
+    const apellido = apeInput.value.trim();
+    const email    = emailInput.value.trim();
+    const pass     = passInput.value;
+
+    if (curp.length !== 18) return toast("CURP inválida (18 caracteres)", "err");
+    if (!nombre || !apellido) return toast("Nombre y apellido requeridos", "err");
+    if (!email) return toast("Error: El correo no se generó", "err");
+    if (pass.length < 6) return toast("Contraseña muy corta (min. 6)", "err");
+
+    toast("⏳ Procesando registro...", "info");
 
     try {
-        // En el autorregistro usamos fetch normal (sin TOKEN de portador)
+        const payload = {
+            name: `${nombre} ${apellido}`,
+            email: email,
+            password: pass,
+            curp: curp,
+            role: 'employee'
+        };
+
+        console.log("Enviando datos al servidor:", payload);
+
         const res = await fetch(apiUrl('auth/register'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: `${nombre} ${apellido}`,
-                email: email,
-                password: pass,
-                curp: curp,
-                role: 'employee' // Por defecto se registran como votantes comunes
-            })
+            body: JSON.stringify(payload)
         });
 
+        const data = await res.json();
+        console.log("Respuesta del servidor:", data);
+
         if (res.ok) {
-            toast("¡Cuenta creada! Ahora puedes iniciar sesión.");
-            // Llenamos el campo de login automáticamente para su comodidad
-            document.getElementById('loginEmail').value = email;
-            closeModal('userModal');
+            toast("✅ ¡Cuenta creada exitosamente!", "ok");
+            const loginEmail = document.getElementById('loginEmail');
+            if (loginEmail) loginEmail.value = email;
+            closeModal('userRegistroModal');
         } else {
-            const data = await res.json();
-            toast(data.error || "Error al registrar", "err");
+            toast(data.error || data.message || "Error en el servidor", "err");
         }
     } catch (e) {
-        toast("Servidor fuera de línea", "err");
+        console.error("Error técnico en el registro:", e);
+        toast("Fallo de conexión. ¿El servidor está activo?", "err");
     }
 }
+
 </script>
 </body>
 </html> 
