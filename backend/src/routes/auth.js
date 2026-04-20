@@ -1,4 +1,5 @@
 const express = require('express');
+const { sendResetCode } = require('../utils/mailer');
 const router  = express.Router();
 const bcrypt  = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
@@ -8,6 +9,9 @@ const { authenticate, authenticateRefresh, authorize, can, generateTokens, PERMI
 
 // Almacén en memoria de refresh tokens (en producción: Redis o DB)
 const refreshTokenStore = new Set();
+
+// Almacén de tokens de restablecimiento { email -> { code, expires, userId } }
+const resetCodes = new Map();
 
 // Log de actividad
 const activityLog = [];
@@ -118,7 +122,7 @@ router.post('/register',
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const { name, email, password, department = 'General', role = 'employee', curp } = req.body;
+    const { name, email, password, department = 'General', role = 'employee', curp, backupEmail } = req.body;
 
     if (users.find(u => u.email === email)) {
       return res.status(409).json({ error: 'El email ya está registrado' });
@@ -128,6 +132,7 @@ router.post('/register',
 
     const newUser = {
       id:         uuidv4(),
+      backupEmail: backupEmail || null,
       name,
       email,
       password:   bcrypt.hashSync(password, 12),
@@ -363,6 +368,95 @@ router.patch('/me/password',
     logActivity(user.id, 'PASSWORD_CHANGED', { ip: req.ip });
 
     res.json({ message: 'Contraseña actualizada exitosamente' });
+  }
+);
+
+// ── POST /api/auth/forgot-password  —  Solicitar código de restablecimiento ──
+router.post('/forgot-password',
+  [ body('email').isEmail().withMessage('Email inválido') ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const { email } = req.body;
+
+    // Buscar usuario por email principal O email de respaldo
+    const user = users.find(u => u.email === email || u.backupEmail === email);
+
+    // Siempre responder OK para no revelar si el email existe
+    if (!user || !user.backupEmail) {
+      return res.json({ message: 'Si el correo está registrado, recibirás un código en tu correo de respaldo.' });
+    }
+
+    // Generar código de 6 dígitos
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expires = Date.now() + 15 * 60 * 1000; // 15 minutos
+
+    resetCodes.set(user.id, { code, expires });
+
+    try {
+      await sendResetCode(user.backupEmail, user.name, code);
+      logActivity(user.id, 'PASSWORD_RESET_REQUESTED', { ip: req.ip });
+    } catch (err) {
+      console.error('Error enviando email:', err.message);
+      // En dev sin config de email, el código se imprime en consola y continuamos
+    }
+
+    res.json({ message: 'Si el correo está registrado, recibirás un código en tu correo de respaldo.' });
+  }
+);
+
+// ── POST /api/auth/verify-reset-code  —  Verificar código ────────────────────
+router.post('/verify-reset-code', (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ error: 'Email y código requeridos' });
+
+  const user = users.find(u => u.email === email || u.backupEmail === email);
+  if (!user) return res.status(400).json({ error: 'Código inválido o expirado' });
+
+  const stored = resetCodes.get(user.id);
+  if (!stored || stored.code !== String(code) || Date.now() > stored.expires) {
+    return res.status(400).json({ error: 'Código inválido o expirado' });
+  }
+
+  // El código es válido — emitir token temporal de reset (válido 10 min)
+  const resetToken = require('uuid').v4();
+  // Guardamos el token asociado al userId
+  resetCodes.set(user.id, { ...stored, resetToken, tokenExpires: Date.now() + 10 * 60 * 1000 });
+
+  res.json({ message: 'Código verificado', resetToken, userId: user.id });
+});
+
+// ── POST /api/auth/reset-password  —  Establecer nueva contraseña ─────────────
+router.post('/reset-password',
+  [
+    body('newPassword').isLength({ min: 6 }).withMessage('Mínimo 6 caracteres'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const { userId, resetToken, newPassword } = req.body;
+    if (!userId || !resetToken) return res.status(400).json({ error: 'Token inválido' });
+
+    const stored = resetCodes.get(userId);
+    if (!stored || stored.resetToken !== resetToken || Date.now() > stored.tokenExpires) {
+      return res.status(400).json({ error: 'Token expirado o inválido. Solicita un nuevo código.' });
+    }
+
+    const user = users.find(u => u.id === userId);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    user.password = require('bcryptjs').hashSync(newPassword, 12);
+    user.updatedAt = new Date().toISOString();
+    syncUser(user);
+
+    // Invalidar el código usado
+    resetCodes.delete(userId);
+
+    logActivity(userId, 'PASSWORD_RESET_COMPLETED', { ip: req.ip });
+
+    res.json({ message: 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión.' });
   }
 );
 
