@@ -323,7 +323,7 @@
     <div class="login-brand">
       <div class="brand-icon">⛓️</div>
       <h1>VoteChain Enterprise</h1>
-      <p>Sistema de votación corporativa con blockchain</p>
+      <p> Sistema de Operacion Coorporativa </p>
     </div>
     <div class="login-error" id="loginError"></div>
     <div id="loginWakeup" style="display:none;background:rgba(47,128,237,.08);border:1px solid rgba(47,128,237,.25);color:#60a5fa;padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:12px;text-align:center;line-height:1.5">
@@ -349,8 +349,8 @@
       </p>
     </div>
     <div class="login-hint">
-      Admin: admin@votechain.com / Admin123!<br>
-      Empleado: maria@votechain.com / Employee123!
+      Esta pagina es solo un prototipo <br>
+      Actualmente esto solo es una demo
     </div>
   </div>
 </div>
@@ -451,9 +451,9 @@
       <input type="password" id="uPassReg" placeholder="Min. 6 caracteres" />
     </div>
     <div class="fg">
-      <label>Correo de respaldo * <span style="color:var(--accent);font-size:10px">(para recuperar contraseña)</span></label>
+      <label>Correo de respaldo * <span style="color:var(--accent);font-size:10px">(para recuperacion de contraseña)</span></label>
       <input type="email" id="uBackupEmail" placeholder="personal@gmail.com" />
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">📧 Se usará para enviarte el código si olvidas tu contraseña</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Se usará para enviarte el código si olvidas tu contraseña</div>
     </div>
     <div class="modal-actions">
       <button onclick="closeModal('userRegistroModal')" style="background:none; border:none; color:var(--muted); cursor:pointer;">Cancelar</button>
@@ -471,7 +471,7 @@
     </div>
     <div class="chain-status" id="chainStatus">
       <div class="chain-dot pending" id="chainDot"></div>
-      <span id="chainLabel">Conectando blockchain...</span>
+      <span id="chainLabel"> Conexion establecida </span>
     </div>
     <div class="header-right">
       <div class="user-pill"><div class="user-dot"></div><span id="headerUser">—</span><span id="roleBadge" style="font-size:10px;font-weight:700;margin-left:4px"></span></div>
@@ -546,10 +546,10 @@
             <div class="fg">
               <label>Opciones</label>
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px">
-                <input type="checkbox" id="cvAnon" checked style="width:auto"> Votación anónima
+                <input type="checkbox" id="cvAnon" checked style="width:auto">Votación anónima
               </label>
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px">
-                <input type="checkbox" id="cvChain" checked style="width:auto"> Registrar en blockchain
+                <input type="checkbox" id="cvChain" checked style="width:auto">Registrar votacion
               </label>
             </div>
           </div>
@@ -562,11 +562,11 @@
             <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addOption()">+ Agregar opción</button>
           </div>
           <div id="createChainPreview" style="background:#030d1f;border:1px solid #0e3355;border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:#22d3ee">
-            ⛓️ Esta votación será enviada al smart contract en <code style="color:#60a5fa">localhost:8545</code> · Contrato: <code style="color:#60a5fa" id="contractAddrPrev">—</code>
+            Esta votación será enviada al smart contract en <code style="color:#60a5fa">localhost:8545</code> · Contrato: <code style="color:#60a5fa" id="contractAddrPrev">—</code>
           </div>
           <div style="display:flex;gap:12px;justify-content:flex-end">
             <button class="btn btn-ghost" onclick="navigate('voting')">Cancelar</button>
-            <button class="btn btn-primary" onclick="createVote()">⛓️ Crear en Blockchain</button>
+            <button class="btn btn-primary" onclick="createVote()">Crear votacion </button>
           </div>
         </div>
       </div>
@@ -574,20 +574,20 @@
       <!-- ESTADÍSTICAS ────────────────────────────────────── -->
       <div class="page" id="page-stats">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Estadísticas</div><button class="btn btn-ghost btn-sm" onclick="loadStats()" title="Actualizar">↺ Refresh</button></div>
-        <div class="page-sub">Datos en tiempo real desde el backend y el smart contract</div>
+        <div class="page-sub">Datos en tiempo real </div>
         <div class="card" style="margin-bottom:16px">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <label style="font-size:13px;color:var(--muted);font-weight:600">Votación:</label>
             <select class="sel" id="statsVoteSelect" onchange="loadVoteDetail()" style="flex:1;max-width:400px">
               <option value="">— Selecciona una votación —</option>
             </select>
-            <button class="btn btn-chain btn-sm" onclick="loadVoteDetailFromChain()">⛓️ Leer desde blockchain</button>
+            <button class="btn btn-chain btn-sm" onclick="loadVoteDetailFromChain()"> Leer votacion </button>
           </div>
         </div>
         <div id="statsVoteDetail"></div>
         <div class="charts-grid">
           <div class="card">
-            <div class="card-title">Votos por votación</div>
+            <div class="card-title">Datos por votación</div>
             <div class="chart-wrap"><canvas id="statsBarChart"></canvas></div>
           </div>
           <div class="card">
