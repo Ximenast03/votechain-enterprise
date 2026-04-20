@@ -504,7 +504,7 @@
 
       <!-- DASHBOARD ─────────────────────────────────────── -->
       <div class="page active" id="page-dashboard">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Dashboard</div><button class="btn btn-ghost btn-sm" onclick="loadDashboard();loadVotes()" title="Actualizar">↺ Refresh</button></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Dashboard</div><button class="btn btn-ghost btn-sm" onclick="loadDashboard();loadVotes()" title="Refresh">↺ Refresh</button></div>
         <div class="page-sub">Estado general del sistema en tiempo real</div>
         <div class="kpi-grid">
           <div class="kpi blue">  <div class="kpi-icon">🗳️</div><div class="kpi-label">Votaciones</div><div class="kpi-val" id="d-total">—</div></div>
@@ -529,7 +529,7 @@
             <option value="active">Activas</option>
             <option value="closed">Cerradas</option>
           </select>
-          <button class="btn btn-ghost btn-sm" onclick="loadVotes()">↺ Actualizar</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadVotes()">↺ Refresh</button>
         </div>
         <div class="vote-cards" id="voteCards"><div class="empty"><div class="icon">⟳</div><p>Cargando votaciones...</p></div></div>
       </div>
@@ -573,7 +573,7 @@
 
       <!-- ESTADÍSTICAS ────────────────────────────────────── -->
       <div class="page" id="page-stats">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Estadísticas</div><button class="btn btn-ghost btn-sm" onclick="loadStats()" title="Actualizar">↺ Refresh</button></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Estadísticas</div><button class="btn btn-ghost btn-sm" onclick="loadStats()" title="Refresh">↺ Refresh</button></div>
         <div class="page-sub">Datos en tiempo real </div>
         <div class="card" style="margin-bottom:16px">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -603,7 +603,7 @@
 
       <!-- USUARIOS ────────────────────────────────────────── -->
       <div class="page" id="page-users">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Gestión de Usuarios</div><button class="btn btn-ghost btn-sm" onclick="loadUsers()" title="Actualizar">↺ Refresh</button></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Gestión de Usuarios</div><button class="btn btn-ghost btn-sm" onclick="loadUsers()" title="Refresh">↺ Refresh</button></div>
         <div class="page-sub">Usuarios registrados en el sistema</div>
         <div class="toolbar">
           <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="userSearch" placeholder="Buscar..." oninput="renderUsers()" /></div>
@@ -625,7 +625,7 @@
 
       <!-- PERFIL / CAMBIAR CONTRASEÑA ──────────────────────── -->
       <div class="page" id="page-profile">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Mi Perfil</div><button class="btn btn-ghost btn-sm" onclick="loadProfile()" title="Actualizar">↺ Refresh</button></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Mi Perfil</div><button class="btn btn-ghost btn-sm" onclick="loadProfile()" title="Refresh">↺ Refresh</button></div>
         <div class="page-sub">Gestiona tu cuenta y seguridad</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
           <div class="card">
@@ -648,17 +648,17 @@
 
       <!-- AUDITORÍA ───────────────────────────────────────── -->
       <div class="page" id="page-audit">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Auditoría Blockchain</div><button class="btn btn-ghost btn-sm" onclick="loadAudit()" title="Actualizar">↺ Refresh</button></div>
-        <div class="page-sub">Registro inmutable de todos los votos — verificable en el smart contract</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Auditoría </div><button class="btn btn-ghost btn-sm" onclick="loadAudit()" title="Refresh">↺ Refresh</button></div>
+        <div class="page-sub">Registro inmutable de todos los votos </div>
         <div class="kpi-grid">
           <div class="kpi cyan">   <div class="kpi-icon">⛓️</div><div class="kpi-label">Total Bloques</div><div class="kpi-val" id="a-blocks">—</div></div>
           <div class="kpi green">  <div class="kpi-icon">✅</div><div class="kpi-label">En Cadena Real</div><div class="kpi-val" id="a-onchain">—</div></div>
-          <div class="kpi purple"> <div class="kpi-icon">🔐</div><div class="kpi-label">Solo Hash Local</div><div class="kpi-val" id="a-local">—</div></div>
+          <div class="kpi purple"> <div class="kpi-icon">🔐</div><div class="kpi-label">Solo Huellas Digitales</div><div class="kpi-val" id="a-local">—</div></div>
           <div class="kpi orange"> <div class="kpi-icon">📄</div><div class="kpi-label">Páginas</div><div class="kpi-val" id="a-pages">—</div></div>
         </div>
         <div class="chain-panel">
-          <div class="chain-panel-title">⛓️ Log de bloques</div>
-          <div id="auditLog"><div class="empty"><div class="icon">⛓️</div><p>No hay bloques aún — emite votos primero</p></div></div>
+          <div class="chain-panel-title"> Registro de actividad </div>
+          <div id="auditLog"><div class="empty"><div class="icon">⛓️</div><p>Aun no hay actividad — primero realiza un votó</p></div></div>
         </div>
         <div class="card">
           <div class="card-title">Verificar transacción</div>
@@ -673,7 +673,7 @@
       <!-- ACTIVIDAD ──────────────────────────────────────────
            FIX: moved inside <main> where it belongs           -->
       <div class="page" id="page-activity">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Log de Actividad</div><button class="btn btn-ghost btn-sm" onclick="loadActivity()" title="Actualizar">↺ Refresh</button></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Log de Actividad</div><button class="btn btn-ghost btn-sm" onclick="loadActivity()" title="Refresh">↺ Refresh</button></div>
         <div class="page-sub">Registro de acciones del sistema</div>
         <div class="table-wrap">
           <table>
@@ -844,7 +844,7 @@ async function checkBlockchainStatus() {
     const data = await res.json();
     if (data.status === 'ok') {
       dot.className   = 'chain-dot ok';
-      label.textContent = '⛓️ Blockchain activo';
+      label.textContent = ' Blockchain activo';
     }
   } catch {
     dot.className   = 'chain-dot err';
@@ -1437,7 +1437,7 @@ async function saveUser() {
         allUsers[idx].department = dept;
         if (pendingAvatar) allUsers[idx].avatar = pendingAvatar;
       }
-      toast(`✅ Usuario actualizado: ${name}`);
+      toast(`Usuario actualizado: ${name}`);
 
     } else {
       // ── CREAR nuevo usuario ───────────────────────────────
@@ -1523,7 +1523,7 @@ async function loadAudit() {
           <span class="tx-time">${new Date(b.timestamp).toLocaleTimeString('es-MX')}</span>
           ${b.onChain
             ? `<span class="tx-on">⛓️ On-chain #${b.ethBlockNumber}</span>`
-            : `<span class="tx-off">📝 Hash local</span>`}
+            : `<span class="tx-off">📝 Huella Digital</span>`}
         </div>`).join('')
       : '<div class="empty"><div class="icon">⛓️</div><p>No hay bloques aún — emite votos primero</p></div>';
   } catch { toast('Error cargando auditoría', 'err'); }
@@ -1540,7 +1540,7 @@ async function verifyTx() {
       el.innerHTML = `
         <div class="verify-strip">
           ✅ Transacción verificada · Bloque #${data.block.blockNumber} ·
-          ${data.block.onChain ? `⛓️ Confirmada en cadena (bloque Ethereum #${data.block.ethBlockNumber})` : '📝 Hash local'}
+          ${data.block.onChain ? `⛓️ Confirmada en cadena (bloque Ethereum #${data.block.ethBlockNumber})` : '📝 Huella digital'}
           · Timestamp: ${new Date(data.block.timestamp).toLocaleString('es-MX')}
         </div>`;
     } else {
@@ -1615,7 +1615,7 @@ async function changePassword() {
     });
     const data = await res.json();
     if (res.ok) {
-      toast('✅ Contraseña actualizada');
+      toast('Contraseña actualizada');
       ['pwCurrent','pwNew','pwConfirm'].forEach(id => document.getElementById(id).value = '');
     } else {
       toast(data.errors?.[0]?.msg || data.error || 'Error', 'err');
@@ -1663,7 +1663,7 @@ async function uploadMyAvatar(input) {
       const data = await res.json();
       if (res.ok) {
         ME.avatar = avatar;
-        toast('✅ Foto de perfil actualizada');
+        toast(' Foto de perfil actualizada');
         loadProfile(); // Recargar para mostrar nueva foto
       } else {
         toast(data.error || 'Error al subir foto', 'err');
